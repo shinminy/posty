@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="BASE_DIR">logs</Property>
+        <Property name="LOG_FORMAT">%d{yyyy-MM-dd HH:mm:ss} %-5p [%t] %c{1}:%L - %m%n</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingFile name="RollingFile"
+                     fileName="${BASE_DIR}/postingapi.log"
+                     filePattern="${BASE_DIR}/postingapi.%d{yyyyMMdd}.log">
+            <PatternLayout pattern="${LOG_FORMAT}"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="ErrorRollingFile"
+                     fileName="${BASE_DIR}/postingapi_error.log"
+                     filePattern="${BASE_DIR}/postingapi_error.%d{yyyyMMdd}.log">
+            <PatternLayout pattern="${LOG_FORMAT}"/>
+
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorRollingFile" level="error"/>
+        </Root>
+    </Loggers>
+</Configuration>

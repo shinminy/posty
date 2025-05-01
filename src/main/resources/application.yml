@@ -1,0 +1,52 @@
+time:
+  zone-id: UTC
+
+api:
+  key-header-name: X-API-KEY
+  xff-header-name: X-Forwarded-For
+
+server:
+  port: 15793
+  ssl:
+    enabled: true
+    key-store: ${KEY_STORE}
+    key-store-password: ${KEY_STORE_PASSWORD}
+    key-store-type: PKCS12
+    key-alias: ${KEY_ALIAS}
+  error:
+    include-stacktrace: never
+
+spring:
+  application:
+    name: posting-api
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+  jmx:
+    enabled: false
+
+springdoc:
+  packages-to-scan: com.posty.postingapi.controller
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  api-docs:
+    path: /docs/api-docs
+  swagger-ui:
+    path: /docs/swagger-ui
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+  override-with-generic-response: false
