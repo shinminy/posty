@@ -52,6 +52,7 @@ jobs:
           host: ${{ env.HOST }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
+          passphrase: ${{ env.PASSPHRASE }}
           script: |
             set -e
             cd ${{ env.HOME_DIR }}
