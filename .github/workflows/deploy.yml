@@ -70,9 +70,9 @@ jobs:
       - name: Get JAR file name
         id: get-jar
         run: |
-          JAR_PATH=$(ls build/*.jar | sort -r | head -n 1)
-          echo "JAR_PATH=$JAR_PATH"
-          echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
+          JAR_FILENAME=$(ls build/*.jar | sort -r | head -n 1 | xargs -n 1 basename)
+          echo "JAR_FILENAME=$JAR_FILENAME"
+          echo "JAR_FILENAME=$JAR_FILENAME" >> $GITHUB_ENV
 
       - name: Copy JAR to the server
         uses: appleboy/scp-action@v0.1.7
@@ -81,7 +81,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
-          source: ${{ env.JAR_PATH }}
+          source: build/${{ env.JAR_FILENAME }}
           target: ${{ env.HOME_DIR }}/
 
       - name: Run deploy script on the server
@@ -94,5 +94,5 @@ jobs:
           script: |
             set -e
             cd ${{ env.HOME_DIR }}
-            ln -sf ${{ env.JAR_PATH }} posting-api
+            ln -sf ${{ env.JAR_FILENAME }} posting-api
             sudo systemctl restart posting-api.service
