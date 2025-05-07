@@ -86,7 +86,8 @@ jobs:
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
           source: build/${{ env.JAR_FILENAME }}
-          target: ${{ env.HOME_DIR }}/jars/${{ env.JAR_FILENAME }}
+          target: ${{ env.HOME_DIR }}/jars/
+          strip_components: 1
 
       - name: Run deploy script on the server
         uses: appleboy/ssh-action@v0.1.10
@@ -107,7 +108,6 @@ jobs:
               echo "✅ Symlink created successfully"
             echo "📌 Restarting service..."
             sudo systemctl restart posting-api.service
-            echo "Service restarted and is active"
             if sudo systemctl is-active --quiet posting-api.service; then
               echo "✅ Service restarted and is active"
             else
