@@ -65,14 +65,24 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: built-jar
-          path: build/*.jar
+          path: build
 
       - name: Get JAR file name
         id: get-jar
         run: |
           JAR_FILENAME=$(ls build/*.jar | sort -r | head -n 1 | xargs -n 1 basename)
-          echo "JAR_FILENAME=$JAR_FILENAME"
           echo "JAR_FILENAME=$JAR_FILENAME" >> $GITHUB_ENV
+
+      - name: Debug JAR path
+        run: |
+          echo "Checking if file exists: build/${{ env.JAR_FILENAME }}"
+          ls -al build/
+          if [ -f "build/${{ env.JAR_FILENAME }}" ]; then
+            echo "✅ File exists"
+          else
+            echo "❌ File does not exist"
+            exit 1
+          fi
 
       - name: Copy JAR to the server
         uses: appleboy/scp-action@v0.1.7
