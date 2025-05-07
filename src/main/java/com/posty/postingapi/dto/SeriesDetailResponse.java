@@ -2,6 +2,7 @@ package com.posty.postingapi.dto;
 
 import com.posty.postingapi.domain.post.Series;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,6 +10,7 @@ import lombok.ToString;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -27,15 +29,6 @@ public class SeriesDetailResponse {
     private List<String> writers;
 
     private List<PostSummary> posts;
-
-    public SeriesDetailResponse(Long id, String title, String description, List<AccountSummary> managers, List<String> writers, List<PostSummary> posts) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.managers = managers;
-        this.writers = writers;
-        this.posts = posts;
-    }
 
     public SeriesDetailResponse(Series series, List<String> writers, List<PostSummary> posts) {
         this(

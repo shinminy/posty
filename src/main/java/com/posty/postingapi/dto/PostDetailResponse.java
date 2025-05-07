@@ -2,6 +2,7 @@ package com.posty.postingapi.dto;
 
 import com.posty.postingapi.domain.post.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,6 +10,7 @@ import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -26,15 +28,6 @@ public class PostDetailResponse {
     private LocalDateTime updatedAt;
 
     private List<PostBlockResponse> blocks;
-
-    public PostDetailResponse(Long id, String title, List<String> writers, LocalDateTime createdAt, LocalDateTime updatedAt, List<PostBlockResponse> blocks) {
-        this.id = id;
-        this.title = title;
-        this.writers = writers;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.blocks = blocks;
-    }
 
     public PostDetailResponse(Post post, List<String> writers, List<PostBlockResponse> blocks) {
         this(post.getId(), post.getTitle(), writers, post.getCreatedAt(), post.getUpdatedAt(), blocks);
