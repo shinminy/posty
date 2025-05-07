@@ -107,9 +107,15 @@ jobs:
             fi
               echo "✅ Symlink created successfully"
             echo "📌 Restarting service..."
-            sudo systemctl restart posting-api.service
-            if sudo systemctl status posting-api.service | grep -q "Active: active"; then
-              echo "✅ Service restarted and is active"
+            if sudo systemctl restart posting-api.service; then
+              echo "✅ Service restarted"
             else
               echo "❌ Failed to restart the service"
+              exit 1
+            fi
+            if sudo systemctl status posting-api.service | grep -q "Active: active"; then
+              echo "✅ Service is active"
+            else
+              echo "❌ Service is not active"
+              exit 1
             fi
