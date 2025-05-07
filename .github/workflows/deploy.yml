@@ -65,12 +65,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: built-jar
+          path: build/*.jar
 
       - name: Get JAR file name
         id: get-jar
         run: |
           JAR_PATH=$(ls build/*.jar | sort -r | head -n 1)
-          echo "jar_path=${JAR_PATH}" >> "$GITHUB_OUTPUT"
+          echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
 
       - name: Copy JAR to the server
         uses: appleboy/scp-action@v0.1.7
@@ -79,7 +80,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
-          source: ${{ steps.get-jar.outputs.jar_path }}
+          source: ${{ env.JAR_PATH }}
           target: ${{ env.HOME_DIR }}/
 
       - name: Run deploy script on the server
@@ -92,5 +93,5 @@ jobs:
           script: |
             set -e
             cd ${{ env.HOME_DIR }}
-            ln -sf ${{ steps.get-jar.outputs.jar_path }} posting-api
+            ln -sf ${{ env.JAR_PATH }} posting-api
             sudo systemctl restart posting-api.service
