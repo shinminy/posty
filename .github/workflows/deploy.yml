@@ -1,12 +1,16 @@
 name: Deploy to the server
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-24.04
 
+  build:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-24.04
     env:
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       HOST: ${{ secrets.SERVER_HOST }}
@@ -17,6 +21,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -29,6 +43,28 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build -x test
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-jar
+          path: build/*.jar
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: build
+    env:
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      HOST: ${{ secrets.SERVER_HOST }}
+      KEY: ${{ secrets.SERVER_PRIVATE_KEY }}
+      PASSPHRASE: ${{ secrets.SERVER_PRIVATE_KEY_PASSPHRASE }}
+      HOME_DIR: ${{ secrets.HOME_DIR }}
+
+    steps:
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built-jar
 
       - name: Get JAR file name
         id: get-jar
