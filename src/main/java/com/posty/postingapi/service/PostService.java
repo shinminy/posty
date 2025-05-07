@@ -5,8 +5,8 @@ import com.posty.postingapi.domain.post.Post;
 import com.posty.postingapi.domain.post.PostBlock;
 import com.posty.postingapi.domain.post.PostBlockRepository;
 import com.posty.postingapi.domain.post.PostRepository;
-import com.posty.postingapi.dto.PostBlockDetail;
-import com.posty.postingapi.dto.PostDetail;
+import com.posty.postingapi.dto.PostBlockResponse;
+import com.posty.postingapi.dto.PostDetailResponse;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +35,7 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id = " + postId));
     }
 
-    public PostDetail getPostDetail(Long postId, int page, int size) {
+    public PostDetailResponse getPostDetail(Long postId, int page, int size) {
         Post post = findPostById(postId);
 
         List<String> writers = writerSearch.searchWritersOfPosts(postId);
@@ -43,10 +43,10 @@ public class PostService {
         PageRequest pageable = PageRequest.of(page-1, size);
         Page<PostBlock> blocks = postBlockRepository.findBlocksByPostId(postId, pageable);
 
-        List<PostBlockDetail> blockData = blocks.stream()
-                .map(PostBlockDetail::new)
+        List<PostBlockResponse> blockData = blocks.stream()
+                .map(PostBlockResponse::new)
                 .collect(Collectors.toList());
 
-        return new PostDetail(post, writers, blockData);
+        return new PostDetailResponse(post, writers, blockData);
     }
 }

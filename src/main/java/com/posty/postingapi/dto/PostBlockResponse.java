@@ -12,14 +12,14 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class PostBlockDetail {
+public class PostBlockResponse {
 
     private Long id;
 
     @Schema(description = "블록 순서 (번호)")
     private Integer order;
 
-    private SimpleAccount writer;
+    private AccountSummary writer;
 
     private PostBlockType blockType;
 
@@ -30,7 +30,7 @@ public class PostBlockDetail {
 
     private LocalDateTime updatedAt;
 
-    public PostBlockDetail(Long id, Integer order, SimpleAccount writer, PostBlockType blockType, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public PostBlockResponse(Long id, Integer order, AccountSummary writer, PostBlockType blockType, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.order = order;
         this.writer = writer;
@@ -40,11 +40,11 @@ public class PostBlockDetail {
         this.updatedAt = updatedAt;
     }
 
-    public PostBlockDetail(PostBlock block) {
+    public PostBlockResponse(PostBlock block) {
         this(
                 block.getId(),
                 block.getOrderNo(),
-                new SimpleAccount(block.getWriter()),
+                new AccountSummary(block.getWriter()),
                 block.getBlockType(), PostBlockType.TEXT == block.getBlockType() ? block.getContent() : block.getMediaUrl(),
                 block.getCreatedAt(),
                 block.getUpdatedAt()

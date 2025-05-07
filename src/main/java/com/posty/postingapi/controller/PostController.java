@@ -1,6 +1,6 @@
 package com.posty.postingapi.controller;
 
-import com.posty.postingapi.dto.PostDetail;
+import com.posty.postingapi.dto.PostDetailResponse;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,9 +26,9 @@ public class PostController {
     }
 
     @Operation(summary = "포스트 상세정보 조회", description = "내용 일부를 포함한 포스트 상세정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PostDetail.class)))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PostDetailResponse.class)))
     @GetMapping("/{post-id}")
-    public PostDetail getPost(
+    public PostDetailResponse getPost(
             @PathVariable("post-id") Long postId,
             @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
             @RequestParam(required = false, defaultValue = "10") @Min(1) int size

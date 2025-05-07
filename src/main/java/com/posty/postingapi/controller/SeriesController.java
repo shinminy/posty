@@ -1,6 +1,6 @@
 package com.posty.postingapi.controller;
 
-import com.posty.postingapi.dto.SeriesDetail;
+import com.posty.postingapi.dto.SeriesDetailResponse;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.SeriesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,9 +26,9 @@ public class SeriesController {
     }
 
     @Operation(summary = "시리즈 상세정보 조회", description = "포스트 목록을 포함한 시리즈의 상세정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SeriesDetail.class)))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SeriesDetailResponse.class)))
     @GetMapping("/{series-id}")
-    public SeriesDetail getSeries(
+    public SeriesDetailResponse getSeries(
             @PathVariable("series-id") Long seriesId,
             @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
             @RequestParam(required = false, defaultValue = "10") @Min(1) int size

@@ -2,10 +2,9 @@ package com.posty.postingapi.service;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
-import com.posty.postingapi.domain.post.Series;
 import com.posty.postingapi.domain.post.SeriesRepository;
-import com.posty.postingapi.dto.AccountDetail;
-import com.posty.postingapi.dto.SimpleSeries;
+import com.posty.postingapi.dto.AccountDetailResponse;
+import com.posty.postingapi.dto.SeriesSummary;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -28,17 +27,17 @@ public class AccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id = " + accountId));
     }
 
-    public AccountDetail getAccountDetail(Long accountId) {
+    public AccountDetailResponse getAccountDetail(Long accountId) {
         Account account = findAccountById(accountId);
 
-        return new AccountDetail(account);
+        return new AccountDetailResponse(account);
     }
 
-    public List<SimpleSeries> getManagedSeriesList(Long accountId) {
+    public List<SeriesSummary> getManagedSeriesList(Long accountId) {
         Account account = findAccountById(accountId);
 
         return account.getManagedSeries().stream()
-                .map(SimpleSeries::new)
+                .map(SeriesSummary::new)
                 .collect(Collectors.toList());
     }
 }

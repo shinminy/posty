@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @ToString
-public class SeriesDetail {
+public class SeriesDetailResponse {
 
     private Long id;
 
@@ -21,14 +21,14 @@ public class SeriesDetail {
     private String description;
 
     @Schema(description = "해당 시리즈 관리자 목록")
-    private List<SimpleAccount> managers;
+    private List<AccountSummary> managers;
 
     @Schema(description = "해당 시리즈 내 포스트 작성에 참여한 작성자 목록")
     private List<String> writers;
 
-    private List<SimplePost> posts;
+    private List<PostSummary> posts;
 
-    public SeriesDetail(Long id, String title, String description, List<SimpleAccount> managers, List<String> writers, List<SimplePost> posts) {
+    public SeriesDetailResponse(Long id, String title, String description, List<AccountSummary> managers, List<String> writers, List<PostSummary> posts) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -37,13 +37,13 @@ public class SeriesDetail {
         this.posts = posts;
     }
 
-    public SeriesDetail(Series series, List<String> writers, List<SimplePost> posts) {
+    public SeriesDetailResponse(Series series, List<String> writers, List<PostSummary> posts) {
         this(
                 series.getId(),
                 series.getTitle(),
                 series.getDescription(),
                 series.getManagers().stream()
-                        .map(SimpleAccount::new)
+                        .map(AccountSummary::new)
                         .collect(Collectors.toList()),
                 writers,
                 posts

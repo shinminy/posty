@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class AccountDetail {
+public class AccountDetailResponse {
 
     private Long id;
 
@@ -33,7 +33,7 @@ public class AccountDetail {
     @Schema(description = "status가 LOCKED일 때만 값 존재, 이외에는 null")
     private LocalDateTime lockedAt;
 
-    public AccountDetail(Long id, String email, String name, String mobileNumber, AccountStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLoginAt, LocalDateTime lockedAt) {
+    public AccountDetailResponse(Long id, String email, String name, String mobileNumber, AccountStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLoginAt, LocalDateTime lockedAt) {
         this.id = id;
         this.email = email;
         this.name = name;
@@ -45,7 +45,7 @@ public class AccountDetail {
         this.lockedAt = lockedAt;
     }
 
-    public AccountDetail(Account account) {
+    public AccountDetailResponse(Account account) {
         this(
                 account.getId(),
                 account.getEmail(),
