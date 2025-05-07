@@ -3,12 +3,14 @@ package com.posty.postingapi.dto;
 import com.posty.postingapi.domain.post.PostBlock;
 import com.posty.postingapi.domain.post.PostBlockType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -29,16 +31,6 @@ public class PostBlockResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    public PostBlockResponse(Long id, Integer order, AccountSummary writer, PostBlockType blockType, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.order = order;
-        this.writer = writer;
-        this.blockType = blockType;
-        this.content = content;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 
     public PostBlockResponse(PostBlock block) {
         this(
