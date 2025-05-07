@@ -11,12 +11,6 @@ jobs:
   build:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-24.04
-    env:
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      HOST: ${{ secrets.SERVER_HOST }}
-      KEY: ${{ secrets.SERVER_PRIVATE_KEY }}
-      PASSPHRASE: ${{ secrets.SERVER_PRIVATE_KEY_PASSPHRASE }}
-      HOME_DIR: ${{ secrets.HOME_DIR }}
 
     steps:
       - name: Checkout code
@@ -75,7 +69,7 @@ jobs:
 
       - name: Debug JAR path
         run: |
-          echo "Checking if file exists: build/${{ env.JAR_FILENAME }}"
+          echo "📌 Checking if file exists: build/${{ env.JAR_FILENAME }}"
           ls -al build/
           if [ -f "build/${{ env.JAR_FILENAME }}" ]; then
             echo "✅ File exists"
@@ -92,7 +86,7 @@ jobs:
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
           source: build/${{ env.JAR_FILENAME }}
-          target: ${{ env.HOME_DIR }}/
+          target: ${{ env.HOME_DIR }}/jars/${{ env.JAR_FILENAME }}
 
       - name: Run deploy script on the server
         uses: appleboy/ssh-action@v0.1.10
@@ -104,5 +98,18 @@ jobs:
           script: |
             set -e
             cd ${{ env.HOME_DIR }}
-            ln -sf ${{ env.JAR_FILENAME }} posting-api
+            ln -sf jars/${{ env.JAR_FILENAME }} posting-api
+            echo "📌 Creating symlink..."
+            if [ ! -L posting-api ]; then
+              echo "❌ Symlink creation failed"
+              exit 1
+            fi
+              echo "✅ Symlink created successfully"
+            echo "📌 Restarting service..."
             sudo systemctl restart posting-api.service
+            echo "Service restarted and is active"
+            if sudo systemctl is-active --quiet posting-api.service; then
+              echo "✅ Service restarted and is active"
+            else
+              echo "❌ Failed to restart the service"
+            fi
