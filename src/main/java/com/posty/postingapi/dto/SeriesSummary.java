@@ -8,18 +8,18 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class SimpleSeries {
+public class SeriesSummary {
 
     private Long id;
 
     private String title;
 
-    public SimpleSeries(Long id, String title) {
+    public SeriesSummary(Long id, String title) {
         this.id = id;
         this.title = title;
     }
 
-    public SimpleSeries(Series series) {
+    public SeriesSummary(Series series) {
         this(series.getId(), series.getTitle());
     }
 }

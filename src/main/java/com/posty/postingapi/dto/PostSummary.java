@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class SimplePost {
+public class PostSummary {
 
     private Long id;
 
@@ -22,14 +22,14 @@ public class SimplePost {
 
     private LocalDateTime createdAt;
 
-    public SimplePost(Long id, Integer order, String title, LocalDateTime createdAt) {
+    public PostSummary(Long id, Integer order, String title, LocalDateTime createdAt) {
         this.id = id;
         this.order = order;
         this.title = title;
         this.createdAt = createdAt;
     }
 
-    public SimplePost(Post post) {
+    public PostSummary(Post post) {
         this.id = post.getId();
         this.order = post.getOrderNo();
         this.title = post.getTitle();

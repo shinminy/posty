@@ -1,7 +1,7 @@
 package com.posty.postingapi.controller;
 
-import com.posty.postingapi.dto.AccountDetail;
-import com.posty.postingapi.dto.SimpleSeries;
+import com.posty.postingapi.dto.AccountDetailResponse;
+import com.posty.postingapi.dto.SeriesSummary;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,16 +29,16 @@ public class AccountController {
     }
 
     @Operation(summary = "계정 상세정보 조회", description = "계정 상세정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AccountDetail.class)))
-    @GetMapping("/{account-id}")
-    public AccountDetail getAccount(@PathVariable("account-id") Long accountId) {
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AccountDetailResponse.class)))
+    @GetMapping("/{accountId}")
+    public AccountDetailResponse getAccount(@PathVariable Long accountId) {
         return accountService.getAccountDetail(accountId);
     }
 
     @Operation(summary = "관리하는 시리즈 조회", description = "해당 계정이 관리 중인 시리즈 정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(array = @ArraySchema(schema = @Schema(implementation = SimpleSeries.class))))
-    @GetMapping("/{account-id}/managed-series")
-    public List<SimpleSeries> getManagedSeriesList(@PathVariable("account-id") Long accountId) {
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(array = @ArraySchema(schema = @Schema(implementation = SeriesSummary.class))))
+    @GetMapping("/{accountId}/managed-series")
+    public List<SeriesSummary> getManagedSeriesList(@PathVariable Long accountId) {
         return accountService.getManagedSeriesList(accountId);
     }
 }

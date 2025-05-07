@@ -8,18 +8,18 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class SimpleAccount {
+public class AccountSummary {
 
     private Long id;
 
     private String name;
 
-    public SimpleAccount(Long id, String name) {
+    public AccountSummary(Long id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public SimpleAccount(Account writer) {
+    public AccountSummary(Account writer) {
         this(writer.getId(), writer.getName());
     }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class PostDetail {
+public class PostDetailResponse {
 
     private Long id;
 
@@ -25,9 +25,9 @@ public class PostDetail {
 
     private LocalDateTime updatedAt;
 
-    private List<PostBlockDetail> blocks;
+    private List<PostBlockResponse> blocks;
 
-    public PostDetail(Long id, String title, List<String> writers, LocalDateTime createdAt, LocalDateTime updatedAt, List<PostBlockDetail> blocks) {
+    public PostDetailResponse(Long id, String title, List<String> writers, LocalDateTime createdAt, LocalDateTime updatedAt, List<PostBlockResponse> blocks) {
         this.id = id;
         this.title = title;
         this.writers = writers;
@@ -36,7 +36,7 @@ public class PostDetail {
         this.blocks = blocks;
     }
 
-    public PostDetail(Post post, List<String> writers, List<PostBlockDetail> blocks) {
+    public PostDetailResponse(Post post, List<String> writers, List<PostBlockResponse> blocks) {
         this(post.getId(), post.getTitle(), writers, post.getCreatedAt(), post.getUpdatedAt(), blocks);
     }
 }

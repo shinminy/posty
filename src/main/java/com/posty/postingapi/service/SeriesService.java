@@ -2,8 +2,8 @@ package com.posty.postingapi.service;
 
 import com.posty.postingapi.domain.common.WriterSearch;
 import com.posty.postingapi.domain.post.*;
-import com.posty.postingapi.dto.SeriesDetail;
-import com.posty.postingapi.dto.SimplePost;
+import com.posty.postingapi.dto.SeriesDetailResponse;
+import com.posty.postingapi.dto.PostSummary;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,18 +32,18 @@ public class SeriesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Series not found with id = " + seriesId));
     }
 
-    public SeriesDetail getSeriesDetail(Long seriesId, int page, int size) {
+    public SeriesDetailResponse getSeriesDetail(Long seriesId, int page, int size) {
         Series series = findSeriesById(seriesId);
 
         List<String> writers = writerSearch.searchWritersOfSeries(seriesId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
-        Page<Post> posts = postRepository.findPostsBySeriesId(seriesId, pageable);
+        Page<Post> postData = postRepository.findPostsBySeriesId(seriesId, pageable);
 
-        List<SimplePost> postData = posts.stream()
-                .map(SimplePost::new)
+        List<PostSummary> posts = postData.stream()
+                .map(PostSummary::new)
                 .collect(Collectors.toList());
 
-        return new SeriesDetail(series, writers, postData);
+        return new SeriesDetailResponse(series, writers, posts);
     }
 }
