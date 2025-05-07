@@ -71,6 +71,7 @@ jobs:
         id: get-jar
         run: |
           JAR_PATH=$(ls build/*.jar | sort -r | head -n 1)
+          echo "JAR_PATH=$JAR_PATH"
           echo "JAR_PATH=$JAR_PATH" >> $GITHUB_ENV
 
       - name: Copy JAR to the server
