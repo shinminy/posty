@@ -55,4 +55,12 @@ public class Account {
     private LocalDateTime lockedAt;
 
     private LocalDateTime deletedAt;
+
+    public Account(String email, String password, String name, String mobileNumber, AccountStatus status) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.mobileNumber = mobileNumber;
+        this.status = status;
+    }
 }

@@ -1,6 +1,5 @@
 package com.posty.postingapi.dto;
 
-import com.posty.postingapi.domain.post.PostBlock;
 import com.posty.postingapi.domain.post.PostBlockType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -31,15 +30,4 @@ public class PostBlockResponse {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    public PostBlockResponse(PostBlock block) {
-        this(
-                block.getId(),
-                block.getOrderNo(),
-                new AccountSummary(block.getWriter()),
-                block.getBlockType(), PostBlockType.TEXT == block.getBlockType() ? block.getContent() : block.getMediaUrl(),
-                block.getCreatedAt(),
-                block.getUpdatedAt()
-        );
-    }
 }

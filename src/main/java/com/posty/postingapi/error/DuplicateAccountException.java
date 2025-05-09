@@ -3,10 +3,10 @@ package com.posty.postingapi.error;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends RuntimeException {
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class DuplicateAccountException extends RuntimeException {
 
-    public ResourceNotFoundException(final String message) {
+    public DuplicateAccountException(final String message) {
         super(message);
     }
 }

@@ -5,54 +5,68 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({ MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class, ConstraintViolationException.class })
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            ConstraintViolationException.class,
+            IllegalArgumentException.class,
+            MethodArgumentNotValidException.class,
+    })
     public ResponseEntity<ErrorResponse> handleBadRequestException(Exception e, HttpServletRequest request) {
+        String message;
+        if (e instanceof MethodArgumentNotValidException notValidException) {
+            message = "Invalid request. Please check the input values: "
+                    + notValidException.getBindingResult().getFieldErrors().stream()
+                    .map(fieldError -> String.format("%s (%s)", fieldError.getField(), fieldError.getDefaultMessage()))
+                    .collect(Collectors.joining(", "));
+        } else {
+            message = "Invalid request. Please check your input and try again.";
+        }
+
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.BAD_REQUEST,
-                "Invalid or missing query parameter.",
+                message,
                 request.getRequestURI()
         );
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
-        ErrorResponse response = new ErrorResponse(
-                HttpStatus.BAD_REQUEST,
-                "The request contains invalid parameters.",
-                request.getRequestURI()
-        );
-        return ResponseEntity.badRequest().body(response);
-    }
+    @ExceptionHandler({ResourceNotFoundException.class, DuplicateAccountException.class})
+    public ResponseEntity<ErrorResponse> handleMessageCustomException(Exception e, HttpServletRequest request) {
+        HttpStatus status = e.getClass().getAnnotation(ResponseStatus.class).value();
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e, HttpServletRequest request) {
         ErrorResponse response = new ErrorResponse(
-                HttpStatus.NOT_FOUND,
+                status,
                 e.getMessage(),
                 request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        return ResponseEntity.status(status).body(response);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
         ErrorResponse response = new ErrorResponse(
-                HttpStatus.NOT_FOUND,
+                status,
                 "The requested endpoint does not exist.",
                 request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        return ResponseEntity.status(status).body(response);
     }
 
     @ExceptionHandler(Exception.class)

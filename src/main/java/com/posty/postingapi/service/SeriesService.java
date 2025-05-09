@@ -5,6 +5,8 @@ import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.dto.SeriesDetailResponse;
 import com.posty.postingapi.dto.PostSummary;
 import com.posty.postingapi.error.ResourceNotFoundException;
+import com.posty.postingapi.mapper.PostMapper;
+import com.posty.postingapi.mapper.SeriesMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -41,9 +43,9 @@ public class SeriesService {
         Page<Post> postData = postRepository.findPostsBySeriesId(seriesId, pageable);
 
         List<PostSummary> posts = postData.stream()
-                .map(PostSummary::new)
+                .map(PostMapper::toPostSummary)
                 .collect(Collectors.toList());
 
-        return new SeriesDetailResponse(series, writers, posts);
+        return SeriesMapper.toSeriesDetailResponse(series, writers, posts);
     }
 }

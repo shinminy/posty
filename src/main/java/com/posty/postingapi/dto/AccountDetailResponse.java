@@ -1,6 +1,5 @@
 package com.posty.postingapi.dto;
 
-import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -34,18 +33,4 @@ public class AccountDetailResponse {
 
     @Schema(description = "status가 LOCKED일 때만 값 존재, 이외에는 null")
     private LocalDateTime lockedAt;
-
-    public AccountDetailResponse(Account account) {
-        this(
-                account.getId(),
-                account.getEmail(),
-                account.getName(),
-                account.getMobileNumber(),
-                account.getStatus(),
-                account.getCreatedAt(),
-                account.getUpdatedAt(),
-                account.getLastLoginAt(),
-                account.getLockedAt()
-        );
-    }
 }
