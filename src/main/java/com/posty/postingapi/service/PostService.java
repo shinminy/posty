@@ -8,6 +8,8 @@ import com.posty.postingapi.domain.post.PostRepository;
 import com.posty.postingapi.dto.PostBlockResponse;
 import com.posty.postingapi.dto.PostDetailResponse;
 import com.posty.postingapi.error.ResourceNotFoundException;
+import com.posty.postingapi.mapper.PostBlockMapper;
+import com.posty.postingapi.mapper.PostMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -41,12 +43,12 @@ public class PostService {
         List<String> writers = writerSearch.searchWritersOfPosts(postId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
-        Page<PostBlock> blocks = postBlockRepository.findBlocksByPostId(postId, pageable);
+        Page<PostBlock> blockData = postBlockRepository.findBlocksByPostId(postId, pageable);
 
-        List<PostBlockResponse> blockData = blocks.stream()
-                .map(PostBlockResponse::new)
+        List<PostBlockResponse> blocks = blockData.stream()
+                .map(PostBlockMapper::toPostBlockResponse)
                 .collect(Collectors.toList());
 
-        return new PostDetailResponse(post, writers, blockData);
+        return PostMapper.toPostDetailResponse(post, writers, blocks);
     }
 }

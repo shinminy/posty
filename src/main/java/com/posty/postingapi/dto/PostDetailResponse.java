@@ -1,6 +1,5 @@
 package com.posty.postingapi.dto;
 
-import com.posty.postingapi.domain.post.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,8 +27,4 @@ public class PostDetailResponse {
     private LocalDateTime updatedAt;
 
     private List<PostBlockResponse> blocks;
-
-    public PostDetailResponse(Post post, List<String> writers, List<PostBlockResponse> blocks) {
-        this(post.getId(), post.getTitle(), writers, post.getCreatedAt(), post.getUpdatedAt(), blocks);
-    }
 }

@@ -1,6 +1,5 @@
 package com.posty.postingapi.dto;
 
-import com.posty.postingapi.domain.post.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,11 +22,4 @@ public class PostSummary {
     private String title;
 
     private LocalDateTime createdAt;
-
-    public PostSummary(Post post) {
-        this.id = post.getId();
-        this.order = post.getOrderNo();
-        this.title = post.getTitle();
-        this.createdAt = post.getCreatedAt();
-    }
 }

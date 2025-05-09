@@ -17,12 +17,43 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
     }
 
     @Override
+    public boolean existsByEmail(String email) {
+        QAccount qAccount = QAccount.account;
+
+        return queryFactory
+                .selectOne()
+                .from(qAccount)
+                .where(
+                        qAccount.email.eq(email),
+                        qAccount.status.ne(AccountStatus.DELETED)
+                )
+                .fetchFirst() != null;
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        QAccount qAccount = QAccount.account;
+
+        return queryFactory
+                .selectOne()
+                .from(qAccount)
+                .where(
+                        qAccount.name.eq(name),
+                        qAccount.status.ne(AccountStatus.DELETED)
+                )
+                .fetchFirst() != null;
+    }
+
+    @Override
     public Optional<Account> findByEmail(String email) {
         QAccount qAccount = QAccount.account;
 
         Account account = queryFactory
                 .selectFrom(qAccount)
-                .where(qAccount.email.eq(email))
+                .where(
+                        qAccount.email.eq(email),
+                        qAccount.status.ne(AccountStatus.DELETED)
+                )
                 .fetchOne();
 
         return Optional.ofNullable(account);

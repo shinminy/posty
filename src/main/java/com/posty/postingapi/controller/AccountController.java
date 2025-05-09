@@ -1,6 +1,7 @@
 package com.posty.postingapi.controller;
 
 import com.posty.postingapi.dto.AccountDetailResponse;
+import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.SeriesSummary;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.AccountService;
@@ -10,9 +11,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @Tag(name = "계정 관리 API", description = "계정 관련 CRUD API")
@@ -33,6 +38,18 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public AccountDetailResponse getAccount(@PathVariable Long accountId) {
         return accountService.getAccountDetail(accountId);
+    }
+
+    @Operation(summary = "계정 생성", description = "계정을 생성합니다.")
+    @ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(implementation = AccountDetailResponse.class)))
+    @PostMapping
+    public ResponseEntity<AccountDetailResponse> createAccount(@Valid @RequestBody AccountCreateRequest request) {
+        AccountDetailResponse body = accountService.createAccount(request);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(body.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(body);
     }
 
     @Operation(summary = "관리하는 시리즈 조회", description = "해당 계정이 관리 중인 시리즈 정보를 조회합니다.")
