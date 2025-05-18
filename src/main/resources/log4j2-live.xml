@@ -36,5 +36,8 @@
         <!-- RMI 관련 로그 설정 -->
         <Logger name="sun.rmi" level="ERROR" additivity="false"/>
         <Logger name="javax.management.remote.rmi" level="ERROR" additivity="false"/>
+
+        <!-- HikariCP 로그 설정 -->
+        <Logger name="com.zaxxer.hikari" level="INFO" additivity="false"/>
     </Loggers>
 </Configuration>

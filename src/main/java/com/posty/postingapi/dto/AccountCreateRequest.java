@@ -26,4 +26,14 @@ public class AccountCreateRequest {
     private String name;
 
     private String mobileNumber;
+
+    public void normalize() {
+        if (this.email != null) {
+            this.email = this.email.trim().toLowerCase();
+        }
+
+        if (this.name != null) {
+            this.name = this.name.trim().toLowerCase();
+        }
+    }
 }

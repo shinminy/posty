@@ -2,7 +2,6 @@ package com.posty.postingapi.service;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
-import com.posty.postingapi.domain.post.SeriesRepository;
 import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.SeriesSummary;
@@ -11,6 +10,7 @@ import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.AccountMapper;
 import com.posty.postingapi.mapper.SeriesMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
 public class AccountService {
 
     private final AccountRepository accountRepository;
-    private final SeriesRepository seriesRepository;
 
-    public AccountService(AccountRepository accountRepository, SeriesRepository seriesRepository) {
+    private final PasswordEncoder passwordEncoder;
+
+    public AccountService(AccountRepository accountRepository, PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
-        this.seriesRepository = seriesRepository;
+
+        this.passwordEncoder = passwordEncoder;
     }
 
     private Account findAccountById(Long accountId) {
@@ -40,6 +42,7 @@ public class AccountService {
     }
 
     public AccountDetailResponse createAccount(AccountCreateRequest request) {
+        request.normalize();
 
         if (accountRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateAccountException("Email already exists.");
@@ -49,7 +52,9 @@ public class AccountService {
             throw new DuplicateAccountException("Name already exists.");
         }
 
-        Account account = AccountMapper.toEntity(request);
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+
+        Account account = AccountMapper.toEntity(request, hashedPassword);
         Account saved = accountRepository.save(account);
 
         return AccountMapper.toAccountDetailResponse(saved);
