@@ -1,5 +1,6 @@
 package com.posty.postingapi.controller;
 
+import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.PostDetailResponse;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.PostService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "포스트 관리 API", description = "포스트 관련 CRUD API")
 @CommonErrorResponses
+@ResponseLogging
 @Validated
 @RestController
 @RequestMapping("/post")

@@ -1,5 +1,6 @@
 package com.posty.postingapi.controller;
 
+import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.AccountUpdateRequest;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Tag(name = "계정 관리 API", description = "계정 관련 CRUD API")
 @CommonErrorResponses
+@ResponseLogging
 @Validated
 @RestController
 @RequestMapping("/account")
