@@ -2,7 +2,6 @@ package com.posty.postingapi.domain.account;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -24,7 +23,7 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
                 .selectOne()
                 .from(qAccount)
                 .where(
-                        qAccount.email.eq(email),
+                        qAccount.email.lower().eq(email.toLowerCase()),
                         qAccount.status.ne(AccountStatus.DELETED)
                 )
                 .fetchFirst() != null;
@@ -38,7 +37,7 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
                 .selectOne()
                 .from(qAccount)
                 .where(
-                        qAccount.name.eq(name),
+                        qAccount.name.lower().eq(name.toLowerCase()),
                         qAccount.status.ne(AccountStatus.DELETED)
                 )
                 .fetchFirst() != null;
@@ -51,7 +50,7 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
         Account account = queryFactory
                 .selectFrom(qAccount)
                 .where(
-                        qAccount.email.eq(email),
+                        qAccount.email.lower().eq(email.toLowerCase()),
                         qAccount.status.ne(AccountStatus.DELETED)
                 )
                 .fetchOne();
