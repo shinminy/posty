@@ -1,5 +1,6 @@
 package com.posty.postingapi.error;
 
+import com.posty.postingapi.aspect.ResponseLogging;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +13,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
 @Slf4j
+@ResponseLogging
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -64,6 +67,18 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 status,
                 "The requested endpoint does not exist.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+
+        ErrorResponse response = new ErrorResponse(
+                status,
+                "The requested resource could not be found.",
                 request.getRequestURI()
         );
         return ResponseEntity.status(status).body(response);

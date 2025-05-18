@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posty.postingapi.config.ApiConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,18 +14,18 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 @Slf4j
 @ControllerAdvice
-public class LoggingResponseBodyAdvice implements ResponseBodyAdvice<Object> {
+public class ResponseLogger implements ResponseBodyAdvice<Object> {
 
     private final ApiConfig apiConfig;
 
     private final ObjectMapper objectMapper;
 
-    public LoggingResponseBodyAdvice(ApiConfig apiConfig, ObjectMapper objectMapper) {
+    public ResponseLogger(ApiConfig apiConfig, ObjectMapper objectMapper) {
         this.apiConfig = apiConfig;
 
         this.objectMapper = objectMapper;
@@ -32,14 +33,18 @@ public class LoggingResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        return true;
+        return returnType.getDeclaringClass().isAnnotationPresent(ResponseLogging.class)
+                || returnType.getMethod().isAnnotationPresent(ResponseLogging.class);
     }
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-
         HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
         String requestId = (String) servletRequest.getAttribute(apiConfig.getRequestIdName());
+
+        if (StringUtils.isBlank(requestId)) {
+            return body;
+        }
 
         String statusAsString;
         if (response instanceof ServletServerHttpResponse servletResponse) {

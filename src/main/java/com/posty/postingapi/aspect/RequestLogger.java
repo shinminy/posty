@@ -19,11 +19,11 @@ import java.util.UUID;
 @Slf4j
 @Aspect
 @Component
-public class RequestLoggingAspect {
+public class RequestLogger {
 
     private final ApiConfig apiConfig;
 
-    public RequestLoggingAspect(ApiConfig apiConfig) {
+    public RequestLogger(ApiConfig apiConfig) {
         this.apiConfig = apiConfig;
     }
 
