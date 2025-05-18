@@ -2,6 +2,7 @@ time:
   zone-id: UTC
 
 api:
+  request-id-name: X-Request-ID
   key-header-name: X-API-KEY
   xff-header-name: X-Forwarded-For
 
