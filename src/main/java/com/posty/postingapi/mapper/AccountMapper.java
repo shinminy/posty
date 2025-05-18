@@ -5,7 +5,6 @@ import com.posty.postingapi.domain.account.AccountStatus;
 import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.AccountSummary;
-import org.apache.commons.codec.digest.DigestUtils;
 
 public class AccountMapper {
 
@@ -30,15 +29,13 @@ public class AccountMapper {
         );
     }
 
-    public static Account toEntity(AccountCreateRequest request) {
-        String hashedPassword = DigestUtils.sha512Hex(request.getPassword());
-
-        return new Account(
-                request.getEmail(),
-                hashedPassword,
-                request.getName(),
-                request.getMobileNumber(),
-                AccountStatus.NORMAL
-        );
+    public static Account toEntity(AccountCreateRequest request, String hashedPassword) {
+        return Account.builder()
+                .email(request.getEmail())
+                .password(hashedPassword)
+                .name(request.getName())
+                .mobileNumber(request.getMobileNumber())
+                .status(AccountStatus.NORMAL)
+                .build();
     }
 }
