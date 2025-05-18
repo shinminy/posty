@@ -5,6 +5,7 @@ import com.posty.postingapi.dto.PostDetailResponse;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,8 +33,8 @@ public class PostController {
     @GetMapping("/{post-id}")
     public PostDetailResponse getPost(
             @PathVariable("post-id") Long postId,
-            @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
-            @RequestParam(required = false, defaultValue = "10") @Min(1) int size
+            @Parameter(description = "포스트 내 블록 목록의 페이지 번호") @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
+            @Parameter(description = "포스트 내 블록 목록의 한 페이지 크기") @RequestParam(required = false, defaultValue = "10") @Min(1) int size
     ) {
         return postService.getPostDetail(postId, page, size);
     }

@@ -5,6 +5,7 @@ import com.posty.postingapi.dto.SeriesDetailResponse;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.SeriesService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,8 +33,8 @@ public class SeriesController {
     @GetMapping("/{series-id}")
     public SeriesDetailResponse getSeries(
             @PathVariable("series-id") Long seriesId,
-            @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
-            @RequestParam(required = false, defaultValue = "10") @Min(1) int size
+            @Parameter(description = "시리즈 내 포스트 목록의 페이지 번호") @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
+            @Parameter(description = "시리즈 내 포스트 목록의 한 페이지 크기") @RequestParam(required = false, defaultValue = "10") @Min(1) int size
     ) {
         return seriesService.getSeriesDetail(seriesId, page, size);
     }
