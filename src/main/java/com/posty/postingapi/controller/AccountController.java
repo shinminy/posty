@@ -2,6 +2,7 @@ package com.posty.postingapi.controller;
 
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.AccountCreateRequest;
+import com.posty.postingapi.dto.AccountUpdateRequest;
 import com.posty.postingapi.dto.SeriesSummary;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.AccountService;
@@ -50,6 +51,14 @@ public class AccountController {
                 .buildAndExpand(body.getId())
                 .toUri();
         return ResponseEntity.created(location).body(body);
+    }
+
+    @Operation(summary = "계정 수정", description = "계정 정보를 수정합니다. (관리 중인 시리즈 정보는 제외)")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @PutMapping("/{accountId}")
+    public ResponseEntity<Void> updateAccount(@PathVariable Long accountId, @Valid @RequestBody AccountUpdateRequest request) {
+        accountService.updateAccount(accountId, request);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "관리하는 시리즈 조회", description = "해당 계정이 관리 중인 시리즈 정보를 조회합니다.")
