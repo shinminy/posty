@@ -4,25 +4,26 @@ import com.posty.postingapi.config.ApiConfig;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Aspect
 @Component
 public class RequestLoggingAspect {
 
-    private final HttpServletRequest request;
-
     private final ApiConfig apiConfig;
 
-    public RequestLoggingAspect(HttpServletRequest request, ApiConfig apiConfig) {
-        this.request = request;
+    public RequestLoggingAspect(ApiConfig apiConfig) {
         this.apiConfig = apiConfig;
     }
 
@@ -31,11 +32,44 @@ public class RequestLoggingAspect {
 
     @Before("controllerMethods()")
     public void logRequestInfo() {
-        final String apiKeyHeaderName = apiConfig.getKeyHeaderName();
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            log.warn("No ServletRequestAttributes found in RequestContextHolder");
+            return;
+        }
+        HttpServletRequest servletRequest = attributes.getRequest();
 
-        log.info("\n\n[Request info]\nRequest URL: {}\nRequest Method: {}\n{}: {}\nClient IP: {}\nRequest Params: {}\n",
-                request.getRequestURL().toString(), request.getMethod(), apiKeyHeaderName,
-                request.getHeader(apiKeyHeaderName), getClientIp(request), request.getParameterMap());
+        String requestId = UUID.randomUUID().toString();
+        servletRequest.setAttribute(apiConfig.getRequestIdName(), requestId);
+
+        String body;
+        if (servletRequest instanceof ContentCachingRequestWrapper wrapper) {
+            byte[] content = wrapper.getContentAsByteArray();
+            if (content.length == 0) {
+                body = "No body found";
+            } else {
+                try {
+                    body = new String(content, wrapper.getCharacterEncoding());
+                } catch (UnsupportedEncodingException e) {
+                    body = "Failed to decode request body";
+                    log.warn("{}", body, e);
+                }
+            }
+        } else {
+            body = "Not cacheable";
+        }
+
+        log.info(
+                "\n\n[Request info]\nRequest ID: {}\nRequest Method: {}\nRequest URL: {}\nRequest Params: {}\nClient IP: {}\n{}: {}\nRequest Body: {}\n",
+                requestId,
+                servletRequest.getMethod(),
+                servletRequest.getRequestURL().toString(),
+                servletRequest.getParameterMap(),
+                getClientIp(servletRequest),
+                apiConfig.getKeyHeaderName(),
+                servletRequest.getHeader(apiConfig.getKeyHeaderName()),
+                body
+        );
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -50,10 +84,5 @@ public class RequestLoggingAspect {
         }
 
         return clientIp;
-    }
-
-    @AfterReturning(value = "controllerMethods()", returning = "response")
-    public void logResponseInfo(Object response) {
-        log.info("\n\n[Response Body]\n{}\n", response);
     }
 }

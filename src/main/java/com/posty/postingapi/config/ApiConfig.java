@@ -7,8 +7,17 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "api")
 public class ApiConfig {
 
+    private String requestIdName;
     private String keyHeaderName;
     private String xffHeaderName;
+
+    public String getRequestIdName() {
+        return requestIdName;
+    }
+
+    public void setRequestIdName(String requestIdName) {
+        this.requestIdName = requestIdName;
+    }
 
     public String getKeyHeaderName() {
         return keyHeaderName;
