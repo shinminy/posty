@@ -1,11 +1,13 @@
 package com.posty.postingapi.domain.account;
 
 import com.posty.postingapi.domain.post.Series;
+import com.posty.postingapi.dto.AccountUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -62,5 +64,20 @@ public class Account {
         this.name = name;
         this.mobileNumber = mobileNumber;
         this.status = status;
+    }
+
+    public Account withUpdatedFields(AccountUpdateRequest request, String hashedPassword) {
+        return Account.builder()
+                .id(this.id)
+                .email(this.email)
+                .password(StringUtils.hasText(hashedPassword) ? hashedPassword : this.password)
+                .name(StringUtils.hasText(request.getName()) ? request.getName() : this.name)
+                .mobileNumber(StringUtils.hasText(request.getMobileNumber()) ? request.getMobileNumber() : this.mobileNumber)
+                .managedSeries(new ArrayList<>(this.managedSeries))
+                .status(this.status)
+                .lastLoginAt(this.lastLoginAt)
+                .lockedAt(this.lockedAt)
+                .deletedAt(this.deletedAt)
+                .build();
     }
 }

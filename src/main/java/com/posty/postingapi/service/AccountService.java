@@ -4,6 +4,7 @@ import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.AccountDetailResponse;
+import com.posty.postingapi.dto.AccountUpdateRequest;
 import com.posty.postingapi.dto.SeriesSummary;
 import com.posty.postingapi.error.DuplicateAccountException;
 import com.posty.postingapi.error.ResourceNotFoundException;
@@ -12,6 +13,7 @@ import com.posty.postingapi.mapper.SeriesMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,6 +60,23 @@ public class AccountService {
         Account saved = accountRepository.save(account);
 
         return AccountMapper.toAccountDetailResponse(saved);
+    }
+
+    public void updateAccount(Long accountId, AccountUpdateRequest request) {
+
+        Account oldAccount = findAccountById(accountId);
+        request.normalize();
+
+        String newName = request.getName();
+        if (StringUtils.hasText(newName) && !oldAccount.getName().equalsIgnoreCase(newName) && accountRepository.existsByName(newName)) {
+            throw new DuplicateAccountException("Name already exists.");
+        }
+
+        String newPassword = request.getPassword();
+        String hashedPassword = StringUtils.hasText(newPassword) ? passwordEncoder.encode(newPassword) : null;
+
+        Account newAccount = oldAccount.withUpdatedFields(request, hashedPassword);
+        accountRepository.save(newAccount);
     }
 
     public List<SeriesSummary> getManagedSeriesList(Long accountId) {
