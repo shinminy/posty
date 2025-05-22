@@ -1,6 +1,6 @@
 package com.posty.postingapi.mapper;
 
-import com.posty.postingapi.domain.post.Series;
+import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.dto.AccountSummary;
 import com.posty.postingapi.dto.PostSummary;
 import com.posty.postingapi.dto.SeriesDetailResponse;

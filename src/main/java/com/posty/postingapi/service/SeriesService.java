@@ -2,6 +2,8 @@ package com.posty.postingapi.service;
 
 import com.posty.postingapi.domain.common.WriterSearch;
 import com.posty.postingapi.domain.post.*;
+import com.posty.postingapi.domain.series.Series;
+import com.posty.postingapi.domain.series.SeriesRepository;
 import com.posty.postingapi.dto.SeriesDetailResponse;
 import com.posty.postingapi.dto.PostSummary;
 import com.posty.postingapi.error.ResourceNotFoundException;
