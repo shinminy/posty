@@ -1,7 +1,6 @@
 package com.posty.postingapi.service;
 
-import com.posty.postingapi.domain.account.Account;
-import com.posty.postingapi.domain.account.AccountRepository;
+import com.posty.postingapi.domain.account.*;
 import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.AccountUpdateRequest;
