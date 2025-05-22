@@ -42,7 +42,7 @@ public class SeriesService {
         List<String> writers = writerSearch.searchWritersOfSeries(seriesId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
-        Page<Post> postData = postRepository.findPostsBySeriesId(seriesId, pageable);
+        Page<Post> postData = postRepository.findAllBySeriesId(seriesId, pageable);
 
         List<PostSummary> posts = postData.stream()
                 .map(PostMapper::toPostSummary)

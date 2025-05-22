@@ -43,7 +43,7 @@ public class PostService {
         List<String> writers = writerSearch.searchWritersOfPosts(postId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
-        Page<PostBlock> blockData = postBlockRepository.findBlocksByPostId(postId, pageable);
+        Page<PostBlock> blockData = postBlockRepository.findAllByPostId(postId, pageable);
 
         List<PostBlockResponse> blocks = blockData.stream()
                 .map(PostBlockMapper::toPostBlockResponse)
