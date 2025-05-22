@@ -1,6 +1,6 @@
 package com.posty.postingapi.domain.account;
 
-import com.posty.postingapi.domain.post.Series;
+import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.dto.AccountUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
