@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler({ResourceNotFoundException.class, DuplicateAccountException.class})
+    @ExceptionHandler({ResourceNotFoundException.class, DuplicateAccountException.class, AccountUpdateNotAllowedException.class})
     public ResponseEntity<ErrorResponse> handleMessageCustomException(Exception e, HttpServletRequest request) {
         HttpStatus status = e.getClass().getAnnotation(ResponseStatus.class).value();
 
