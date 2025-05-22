@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.CONFLICT)
 public class DuplicateAccountException extends RuntimeException {
 
-    public DuplicateAccountException(final String message) {
-        super(message);
+    public DuplicateAccountException(final String duplicateValue) {
+        super(duplicateValue + " already exists.");
     }
 }
