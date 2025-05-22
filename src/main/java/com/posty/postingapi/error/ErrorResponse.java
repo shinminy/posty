@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Getter
@@ -17,11 +18,11 @@ public class ErrorResponse {
     private String path;
     private LocalDateTime timestamp;
 
-    public ErrorResponse(HttpStatus status, String message, String path) {
+    public ErrorResponse(HttpStatus status, String message, String path, Clock clock) {
         this.status = status.value();
         this.error = status.getReasonPhrase();
         this.message = message;
         this.path = path;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(clock);
     }
 }

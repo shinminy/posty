@@ -3,7 +3,6 @@ package com.posty.postingapi.security.apikey;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.Clock;
@@ -15,13 +14,7 @@ public class ApiKeyRepositoryImpl implements ApiKeyRepositoryCustom {
     private final JPAQueryFactory queryFactory;
     private final Clock clock;
 
-    public ApiKeyRepositoryImpl(JPAQueryFactory queryFactory, Clock clock) {
-        this.queryFactory = queryFactory;
-        this.clock = clock;
-    }
-
-    @Autowired
-    public ApiKeyRepositoryImpl(EntityManager entityManager, final Clock clock) {
+    public ApiKeyRepositoryImpl(EntityManager entityManager, Clock clock) {
         this.queryFactory = new JPAQueryFactory(entityManager);
         this.clock = clock;
     }
