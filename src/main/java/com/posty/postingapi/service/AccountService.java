@@ -34,7 +34,7 @@ public class AccountService {
 
     private Account findAccountById(Long accountId) {
         return accountRepository.findNonDeletedById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with id = " + accountId));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", accountId));
     }
 
     public AccountDetailResponse getAccountDetail(Long accountId) {
@@ -46,12 +46,14 @@ public class AccountService {
     public AccountDetailResponse createAccount(AccountCreateRequest request) {
         request.normalize();
 
-        if (accountRepository.existsNonDeletedByEmail(request.getEmail())) {
-            throw new DuplicateAccountException("Email already exists.");
+        String email = request.getEmail();
+        if (accountRepository.existsNonDeletedByEmail(email)) {
+            throw new DuplicateAccountException(email);
         }
 
-        if (accountRepository.existsNonDeletedByName(request.getName())) {
-            throw new DuplicateAccountException("Name already exists.");
+        String name = request.getName();
+        if (accountRepository.existsNonDeletedByName(name)) {
+            throw new DuplicateAccountException(name);
         }
 
         String hashedPassword = passwordEncoder.encode(request.getPassword());
@@ -73,7 +75,7 @@ public class AccountService {
 
         String newName = request.getName();
         if (StringUtils.hasText(newName) && !oldAccount.getName().equalsIgnoreCase(newName) && accountRepository.existsNonDeletedByName(newName)) {
-            throw new DuplicateAccountException("Name already exists.");
+            throw new DuplicateAccountException(newName);
         }
 
         String newPassword = request.getPassword();

@@ -34,7 +34,7 @@ public class PostService {
 
     private Post findPostById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post not found with id = " + postId));
+                .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
     }
 
     public PostDetailResponse getPostDetail(Long postId, int page, int size) {

@@ -33,7 +33,7 @@ public class SeriesService {
 
     private Series findSeriesById(Long seriesId) {
         return seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new ResourceNotFoundException("Series not found with id = " + seriesId));
+                .orElseThrow(() -> new ResourceNotFoundException("Series", seriesId));
     }
 
     public SeriesDetailResponse getSeriesDetail(Long seriesId, int page, int size) {
