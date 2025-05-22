@@ -21,7 +21,7 @@ public class AccountRepositoryTest {
     void findAccount() {
         String email = "abc@gmail.com";
 
-        Optional<Account> accountOptional = accountRepository.findByEmail(email);
+        Optional<Account> accountOptional = accountRepository.findNonDeletedByEmail(email);
 
         assertThat(accountOptional).isPresent();
         assertThat(accountOptional.get().getEmail()).isEqualTo(email);

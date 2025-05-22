@@ -6,6 +6,7 @@ import com.posty.postingapi.dto.AccountCreateRequest;
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.AccountUpdateRequest;
 import com.posty.postingapi.dto.SeriesSummary;
+import com.posty.postingapi.error.AccountUpdateNotAllowedException;
 import com.posty.postingapi.error.DuplicateAccountException;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.AccountMapper;
@@ -33,7 +34,7 @@ public class AccountService {
     }
 
     private Account findAccountById(Long accountId) {
-        return accountRepository.findById(accountId)
+        return accountRepository.findNonDeletedById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id = " + accountId));
     }
 
@@ -46,11 +47,11 @@ public class AccountService {
     public AccountDetailResponse createAccount(AccountCreateRequest request) {
         request.normalize();
 
-        if (accountRepository.existsByEmail(request.getEmail())) {
+        if (accountRepository.existsNonDeletedByEmail(request.getEmail())) {
             throw new DuplicateAccountException("Email already exists.");
         }
 
-        if (accountRepository.existsByName(request.getName())) {
+        if (accountRepository.existsNonDeletedByName(request.getName())) {
             throw new DuplicateAccountException("Name already exists.");
         }
 
@@ -63,12 +64,16 @@ public class AccountService {
     }
 
     public void updateAccount(Long accountId, AccountUpdateRequest request) {
-
         Account oldAccount = findAccountById(accountId);
+
+        if (oldAccount.getStatus() == AccountStatus.WAITING_FOR_DELETION) {
+            throw new AccountUpdateNotAllowedException("This account is scheduled for deletion.");
+        }
+
         request.normalize();
 
         String newName = request.getName();
-        if (StringUtils.hasText(newName) && !oldAccount.getName().equalsIgnoreCase(newName) && accountRepository.existsByName(newName)) {
+        if (StringUtils.hasText(newName) && !oldAccount.getName().equalsIgnoreCase(newName) && accountRepository.existsNonDeletedByName(newName)) {
             throw new DuplicateAccountException("Name already exists.");
         }
 

@@ -16,7 +16,7 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
     }
 
     @Override
-    public boolean existsByEmail(String email) {
+    public boolean existsNonDeletedByEmail(String email) {
         QAccount qAccount = QAccount.account;
 
         return queryFactory
@@ -30,7 +30,7 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
     }
 
     @Override
-    public boolean existsByName(String name) {
+    public boolean existsNonDeletedByName(String name) {
         QAccount qAccount = QAccount.account;
 
         return queryFactory
@@ -44,7 +44,22 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
     }
 
     @Override
-    public Optional<Account> findByEmail(String email) {
+    public Optional<Account> findNonDeletedById(Long id) {
+        QAccount qAccount = QAccount.account;
+
+        Account account = queryFactory
+                .selectFrom(qAccount)
+                .where(
+                        qAccount.id.eq(id),
+                        qAccount.status.ne(AccountStatus.DELETED)
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(account);
+    }
+
+    @Override
+    public Optional<Account> findNonDeletedByEmail(String email) {
         QAccount qAccount = QAccount.account;
 
         Account account = queryFactory
