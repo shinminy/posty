@@ -1,5 +1,5 @@
 time:
-  zone-id: UTC
+  zone-id: ${user.timezone}
 
 api:
   request-id-name: X-Request-ID
@@ -20,6 +20,8 @@ server:
 spring:
   application:
     name: posting-api
+  jackson:
+    time-zone: ${user.timezone}
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: ${DB_URL}

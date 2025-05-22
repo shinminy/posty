@@ -15,12 +15,19 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.Clock;
 import java.util.stream.Collectors;
 
 @Slf4j
 @ResponseLogging
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final Clock clock;
+
+    public GlobalExceptionHandler(Clock clock) {
+        this.clock = clock;
+    }
 
     @ExceptionHandler({
             MissingServletRequestParameterException.class,
@@ -43,7 +50,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 message,
-                request.getRequestURI()
+                request.getRequestURI(),
+                clock
         );
         return ResponseEntity.badRequest().body(response);
     }
@@ -55,7 +63,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 status,
                 e.getMessage(),
-                request.getRequestURI()
+                request.getRequestURI(),
+                clock
         );
         return ResponseEntity.status(status).body(response);
     }
@@ -67,7 +76,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 status,
                 "The requested endpoint does not exist.",
-                request.getRequestURI()
+                request.getRequestURI(),
+                clock
         );
         return ResponseEntity.status(status).body(response);
     }
@@ -79,7 +89,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 status,
                 "The requested resource could not be found.",
-                request.getRequestURI()
+                request.getRequestURI(),
+                clock
         );
         return ResponseEntity.status(status).body(response);
     }
@@ -91,7 +102,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "An internal server error has occurred. Please try again later.",
-                request.getRequestURI()
+                request.getRequestURI(),
+                clock
         );
         return ResponseEntity.internalServerError().body(response);
     }

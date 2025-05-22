@@ -8,9 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
+
 @RestController
 @RequestMapping("/error")
 public class GlobalErrorController implements ErrorController {
+
+    private final Clock clock;
+
+    public GlobalErrorController(Clock clock) {
+        this.clock = clock;
+    }
 
     @RequestMapping
     public ResponseEntity<ErrorResponse> handleError(HttpServletRequest request) {
@@ -24,13 +32,15 @@ public class GlobalErrorController implements ErrorController {
                 errorResponse = new ErrorResponse(
                         unauthorizedStatus,
                         "Please provide a valid API key.",
-                        request.getRequestURI()
+                        request.getRequestURI(),
+                        clock
                 );
             } else {
                 errorResponse = new ErrorResponse(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "An unexpected error occurred. Please try again later.",
-                        request.getRequestURI()
+                        request.getRequestURI(),
+                        clock
                 );
             }
         }
