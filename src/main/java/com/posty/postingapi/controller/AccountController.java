@@ -1,10 +1,7 @@
 package com.posty.postingapi.controller;
 
 import com.posty.postingapi.aspect.ResponseLogging;
-import com.posty.postingapi.dto.AccountDetailResponse;
-import com.posty.postingapi.dto.AccountCreateRequest;
-import com.posty.postingapi.dto.AccountUpdateRequest;
-import com.posty.postingapi.dto.SeriesSummary;
+import com.posty.postingapi.dto.*;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,6 +58,13 @@ public class AccountController {
     public ResponseEntity<Void> updateAccount(@PathVariable Long accountId, @Valid @RequestBody AccountUpdateRequest request) {
         accountService.updateAccount(accountId, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "계정 삭제", description = "계정 삭제를 요청합니다. 삭제 중 상태로 변경되며, 설정된 유예 기간 후 삭제됩니다. (실제 삭제시간은 삭제 예정일 다음 날 새벽)")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AccountDeleteResponse.class)))
+    @DeleteMapping("/{accountId}")
+    public AccountDeleteResponse deleteAccount(@PathVariable Long accountId) {
+        return accountService.scheduleAccountDeletion(accountId);
     }
 
     @Operation(summary = "관리하는 시리즈 조회", description = "해당 계정이 관리 중인 시리즈 정보를 조회합니다.")

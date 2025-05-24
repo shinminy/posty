@@ -6,6 +6,12 @@ api:
   key-header-name: X-API-KEY
   xff-header-name: X-Forwarded-For
 
+scheduler:
+  account:
+    deletion:
+      grace-period-days: 1
+      cron: "0 5 0 * * *"
+
 server:
   port: 15793
   ssl:
@@ -38,6 +44,10 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: 6379
+  task:
+    scheduling:
+      pool:
+        size: 2
   jmx:
     enabled: false
 
