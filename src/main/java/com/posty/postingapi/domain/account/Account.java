@@ -58,26 +58,63 @@ public class Account {
 
     private LocalDateTime deletedAt;
 
-    public Account(String email, String password, String name, String mobileNumber, AccountStatus status) {
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.mobileNumber = mobileNumber;
-        this.status = status;
+    public Account updatedBy(AccountUpdateRequest request, String hashedPassword) {
+        return Account.builder()
+                .id(id)
+                .email(email)
+                .password(StringUtils.hasText(hashedPassword) ? hashedPassword : password)
+                .name(StringUtils.hasText(request.getName()) ? request.getName() : name)
+                .mobileNumber(StringUtils.hasText(request.getMobileNumber()) ? request.getMobileNumber() : mobileNumber)
+                .managedSeries(new ArrayList<>(managedSeries))
+                .status(status)
+                .lastLoginAt(lastLoginAt)
+                .lockedAt(lockedAt)
+                .deletedAt(deletedAt)
+                .build();
     }
 
-    public Account withUpdatedFields(AccountUpdateRequest request, String hashedPassword) {
+    public Account waitingForDeleting() {
         return Account.builder()
-                .id(this.id)
-                .email(this.email)
-                .password(StringUtils.hasText(hashedPassword) ? hashedPassword : this.password)
-                .name(StringUtils.hasText(request.getName()) ? request.getName() : this.name)
-                .mobileNumber(StringUtils.hasText(request.getMobileNumber()) ? request.getMobileNumber() : this.mobileNumber)
-                .managedSeries(new ArrayList<>(this.managedSeries))
-                .status(this.status)
-                .lastLoginAt(this.lastLoginAt)
-                .lockedAt(this.lockedAt)
-                .deletedAt(this.deletedAt)
+                .id(id)
+                .email(email)
+                .password(password)
+                .name(name)
+                .mobileNumber(mobileNumber)
+                .managedSeries(new ArrayList<>(managedSeries))
+                .status(AccountStatus.WAITING_FOR_DELETION)
+                .lastLoginAt(lastLoginAt)
+                .lockedAt(lockedAt)
+                .deletedAt(deletedAt)
+                .build();
+    }
+
+    public Account deleted(LocalDateTime deletedAt) {
+        return Account.builder()
+                .id(id)
+                .email(email)
+                .password(password)
+                .name(name)
+                .mobileNumber(mobileNumber)
+                .managedSeries(new ArrayList<>(managedSeries))
+                .status(AccountStatus.DELETED)
+                .lastLoginAt(lastLoginAt)
+                .lockedAt(lockedAt)
+                .deletedAt(deletedAt == null ? this.deletedAt : deletedAt)
+                .build();
+    }
+
+    public Account locked(LocalDateTime lockedAt) {
+        return Account.builder()
+                .id(id)
+                .email(email)
+                .password(password)
+                .name(name)
+                .mobileNumber(mobileNumber)
+                .managedSeries(new ArrayList<>(managedSeries))
+                .status(AccountStatus.LOCKED)
+                .lastLoginAt(lastLoginAt)
+                .lockedAt(lockedAt == null ? this.lockedAt : lockedAt)
+                .deletedAt(deletedAt)
                 .build();
     }
 }

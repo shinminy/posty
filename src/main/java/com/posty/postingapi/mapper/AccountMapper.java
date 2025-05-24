@@ -1,8 +1,10 @@
 package com.posty.postingapi.mapper;
 
 import com.posty.postingapi.domain.account.Account;
+import com.posty.postingapi.domain.account.AccountDeletionSchedule;
 import com.posty.postingapi.domain.account.AccountStatus;
 import com.posty.postingapi.dto.AccountCreateRequest;
+import com.posty.postingapi.dto.AccountDeleteResponse;
 import com.posty.postingapi.dto.AccountDetailResponse;
 import com.posty.postingapi.dto.AccountSummary;
 
@@ -37,5 +39,11 @@ public class AccountMapper {
                 .mobileNumber(request.getMobileNumber())
                 .status(AccountStatus.NORMAL)
                 .build();
+    }
+
+    public static AccountDeleteResponse toAccountDeleteResponse(AccountDeletionSchedule entity) {
+        return new AccountDeleteResponse(
+                entity.getScheduledAt()
+        );
     }
 }
