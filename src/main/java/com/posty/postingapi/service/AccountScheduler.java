@@ -22,8 +22,6 @@ public class AccountScheduler {
 
     private final Clock clock;
 
-    private final int deletionGracePeriodDays;
-
     public AccountScheduler(
             AccountDeletionScheduleRepository accountDeletionScheduleRepository, AccountRepository accountRepository,
             Clock clock, SchedulerConfig schedulerConfig
@@ -32,8 +30,6 @@ public class AccountScheduler {
         this.accountRepository = accountRepository;
 
         this.clock = clock;
-
-        this.deletionGracePeriodDays = schedulerConfig.getAccount().getDeletion().getGracePeriodDays();
     }
 
     @Scheduled(cron = "${scheduler.account.deletion.cron}")
@@ -42,11 +38,8 @@ public class AccountScheduler {
         log.info("Account deletion scheduler started...");
 
         LocalDateTime now = LocalDateTime.now(clock);
-        LocalDateTime cutoff = now.minusDays(deletionGracePeriodDays);
 
-        log.info("now: {}, cutoff: {}", now, cutoff);
-
-        List<AccountDeletionSchedule> pendingSchedules = accountDeletionScheduleRepository.findScheduledBefore(cutoff);
+        List<AccountDeletionSchedule> pendingSchedules = accountDeletionScheduleRepository.findScheduledBefore(now);
 
         if (pendingSchedules.isEmpty()) {
             log.info("No accounts scheduled for deletion.");
