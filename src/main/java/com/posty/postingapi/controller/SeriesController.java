@@ -36,9 +36,9 @@ public class SeriesController {
 
     @Operation(summary = "시리즈 상세정보 조회", description = "포스트 목록을 포함한 시리즈의 상세정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SeriesDetailResponse.class)))
-    @GetMapping("/{series-id}")
+    @GetMapping("/{seriesId}")
     public SeriesDetailResponse getSeries(
-            @PathVariable("series-id") Long seriesId,
+            @PathVariable Long seriesId,
             @Parameter(description = "시리즈 내 포스트 목록의 페이지 번호") @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
             @Parameter(description = "시리즈 내 포스트 목록의 한 페이지 크기") @RequestParam(required = false, defaultValue = "10") @Min(1) int size
     ) {
