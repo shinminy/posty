@@ -65,4 +65,12 @@ public class SeriesController {
         seriesService.updateSeries(seriesId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "시리즈 삭제", description = "시리즈 삭제를 요청합니다. 해당 시리즈에 속한 포스트도 전부 삭제됩니다.")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @DeleteMapping("/{seriesId}")
+    public ResponseEntity<Void> deleteSeries(@PathVariable Long seriesId) {
+        seriesService.deleteSeries(seriesId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -100,4 +100,9 @@ public class SeriesService {
         Series newSeries = oldSeries.updatedBy(request, managers);
         seriesRepository.save(newSeries);
     }
+
+    public void deleteSeries(Long seriesId) {
+        Series series = findSeriesById(seriesId);
+        seriesRepository.delete(series);
+    }
 }
