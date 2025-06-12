@@ -48,6 +48,9 @@ spring:
     scheduling:
       pool:
         size: 2
+  web:
+    locale: ${user.language}
+    locale-resolver: fixed
   jmx:
     enabled: false
 

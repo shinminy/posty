@@ -1,6 +1,6 @@
 # REST API for Posty
 
-포스팅 서비스를 위한 REST API입니다.
+포스팅 서비스를 위한 내부 REST API입니다.
 
 ## 문서
 
