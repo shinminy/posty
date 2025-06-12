@@ -9,6 +9,7 @@ import com.posty.postingapi.domain.series.SeriesRepository;
 import com.posty.postingapi.dto.SeriesCreateRequest;
 import com.posty.postingapi.dto.SeriesDetailResponse;
 import com.posty.postingapi.dto.PostSummary;
+import com.posty.postingapi.dto.SeriesUpdateRequest;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mapper.SeriesMapper;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class SeriesService {
@@ -75,5 +77,27 @@ public class SeriesService {
         Series saved = seriesRepository.save(series);
 
         return SeriesMapper.toSeriesDetailResponse(saved, new ArrayList<>(), new ArrayList<>());
+    }
+
+    public void updateSeries(Long seriesId, SeriesUpdateRequest request) {
+        Series oldSeries = findSeriesById(seriesId);
+
+        request.normalize();
+
+        List<Long> managerIds = request.getAccountIds();
+        Set<Account> managers;
+        if (managerIds == null) {
+            managers = oldSeries.getManagers();
+        } else {
+            List<Account> managerList = accountRepository.findAllById(managerIds);
+            if (managerList.isEmpty()) {
+                throw new ResourceNotFoundException("Account", managerIds);
+            }
+
+            managers = new HashSet<>(managerList);
+        }
+
+        Series newSeries = oldSeries.updatedBy(request, managers);
+        seriesRepository.save(newSeries);
     }
 }

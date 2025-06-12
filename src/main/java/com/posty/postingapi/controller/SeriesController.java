@@ -3,6 +3,7 @@ package com.posty.postingapi.controller;
 import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.SeriesCreateRequest;
 import com.posty.postingapi.dto.SeriesDetailResponse;
+import com.posty.postingapi.dto.SeriesUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.SeriesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,5 +56,13 @@ public class SeriesController {
                 .buildAndExpand(body.getId())
                 .toUri();
         return ResponseEntity.created(location).body(body);
+    }
+
+    @Operation(summary = "시리즈 수정", description = "시리즈 정보를 수정합니다.")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @PutMapping("/{seriesId}")
+    public ResponseEntity<Void> updateSeries(@PathVariable Long seriesId, @Valid @RequestBody SeriesUpdateRequest request) {
+        seriesService.updateSeries(seriesId, request);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -2,11 +2,13 @@ package com.posty.postingapi.domain.series;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.post.Post;
+import com.posty.postingapi.dto.SeriesUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,4 +53,14 @@ public class Series {
     @Builder.Default
     @OneToMany(mappedBy = "series", cascade = CascadeType.ALL)
     private List<Post> posts = new ArrayList<>();
+
+    public Series updatedBy(SeriesUpdateRequest request, Set<Account> managers) {
+        return Series.builder()
+                .id(id)
+                .title(StringUtils.hasText(request.getTitle()) ? request.getTitle() : title)
+                .description(StringUtils.hasText(request.getDescription()) ? request.getDescription() : description)
+                .managers(managers)
+                .posts(new ArrayList<>(posts))
+                .build();
+    }
 }
