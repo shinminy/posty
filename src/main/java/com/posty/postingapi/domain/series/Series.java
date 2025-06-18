@@ -54,6 +54,12 @@ public class Series {
     @OneToMany(mappedBy = "series", cascade = CascadeType.ALL)
     private List<Post> posts = new ArrayList<>();
 
+    public void removeManager(Account account) {
+        if (managers.remove(account)) {
+            account.getManagedSeries().remove(this);
+        }
+    }
+
     public Series updatedBy(SeriesUpdateRequest request, Set<Account> managers) {
         return Series.builder()
                 .id(id)

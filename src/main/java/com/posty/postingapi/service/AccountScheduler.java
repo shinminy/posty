@@ -3,6 +3,7 @@ package com.posty.postingapi.service;
 import com.posty.postingapi.config.SchedulerConfig;
 import com.posty.postingapi.domain.account.*;
 import com.posty.postingapi.domain.common.ScheduleStatus;
+import com.posty.postingapi.domain.series.Series;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,17 +50,22 @@ public class AccountScheduler {
 
         List<AccountDeletionSchedule> inProgressSchedules = pendingSchedules.stream()
                 .map(schedule -> schedule.withStatus(ScheduleStatus.IN_PROGRESS))
-                .collect(Collectors.toList());
+                .toList();
 
         accountDeletionScheduleRepository.saveAll(inProgressSchedules);
 
         List<AccountDeletionSchedule> completedSchedules = inProgressSchedules.stream()
-                .map(schedule -> schedule.completedWith(schedule.getAccount().deleted(now)))
-                .collect(Collectors.toList());
+                .map(schedule -> {
+                    Account account = schedule.getAccount();
+                    List<Series> copiedSeries = new ArrayList<>(account.getManagedSeries());
+                    copiedSeries.forEach(series -> series.removeManager(account));
+                    return schedule.completedWith(account.deleted(now));
+                })
+                .toList();
 
         List<Account> accounts = completedSchedules.stream()
                 .map(AccountDeletionSchedule::getAccount)
-                .collect(Collectors.toList());
+                .toList();
 
         accountRepository.saveAll(accounts);
 

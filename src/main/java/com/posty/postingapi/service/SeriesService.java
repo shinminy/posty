@@ -68,7 +68,7 @@ public class SeriesService {
         request.normalize();
 
         List<Long> managerIds = request.getAccountIds();
-        List<Account> managers = accountRepository.findAllById(managerIds);
+        List<Account> managers = accountRepository.findNonDeletedByIdIn(managerIds);
         if (managers.isEmpty()) {
             throw new ResourceNotFoundException("Account", managerIds);
         }
@@ -89,7 +89,7 @@ public class SeriesService {
         if (managerIds == null) {
             managers = oldSeries.getManagers();
         } else {
-            List<Account> managerList = accountRepository.findAllById(managerIds);
+            List<Account> managerList = accountRepository.findNonDeletedByIdIn(managerIds);
             if (managerList.isEmpty()) {
                 throw new ResourceNotFoundException("Account", managerIds);
             }

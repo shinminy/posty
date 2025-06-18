@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -56,6 +57,19 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
                 .fetchOne();
 
         return Optional.ofNullable(account);
+    }
+
+    @Override
+    public List<Account> findNonDeletedByIdIn(List<Long> ids) {
+        QAccount qAccount = QAccount.account;
+
+        return queryFactory
+                .selectFrom(qAccount)
+                .where(
+                        qAccount.id.in(ids),
+                        qAccount.status.ne(AccountStatus.DELETED)
+                )
+                .fetch();
     }
 
     @Override
