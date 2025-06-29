@@ -1,7 +1,10 @@
-name: Deploy to the server
+name: Deploy posting-api to the server
 
 on:
   push:
+    paths:
+      - 'posting-api/**'
+      - '.github/workflows/posting-api-deploy.yml'
     branches:
       - main
   workflow_dispatch:
@@ -35,14 +38,14 @@ jobs:
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew clean build -x test
+      - name: Build posting-api module
+        run: ./gradlew :posting-api:clean :posting-api:build -x test
 
-      - name: Upload JAR artifact
+      - name: Upload posting-api JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: built-jar
-          path: build/*.jar
+          name: posting-api-jar
+          path: posting-api/build/*.jar
 
   deploy:
     runs-on: ubuntu-24.04
@@ -55,11 +58,11 @@ jobs:
       HOME_DIR: ${{ secrets.HOME_DIR }}
 
     steps:
-      - name: Download JAR artifact
+      - name: Download posting-api JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: built-jar
-          path: build
+          name: posting-api-jar
+          path: posting-api/build
 
       - name: Get JAR file name
         id: get-jar
@@ -78,7 +81,7 @@ jobs:
             exit 1
           fi
 
-      - name: Copy JAR to the server
+      - name: Copy posting-api JAR to the server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.HOST }}
