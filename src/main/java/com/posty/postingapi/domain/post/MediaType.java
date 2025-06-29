@@ -1,8 +1,7 @@
 package com.posty.postingapi.domain.post;
 
-public enum PostBlockType {
-    TEXT,
+public enum MediaType {
     IMAGE,
-    AUDIO,
     VIDEO,
+    AUDIO,
 }

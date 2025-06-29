@@ -27,4 +27,18 @@ public class SchedulerConfig {
             private int gracePeriodDays;
         }
     }
+
+    @Getter
+    @Setter
+    public static class MediaSchedulerConfig {
+
+        private MediaRetryConfig retry = new MediaRetryConfig();
+
+        @Getter
+        @Setter
+        public static class MediaRetryConfig {
+
+            private int maxCount;
+        }
+    }
 }

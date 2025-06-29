@@ -1,7 +1,9 @@
 package com.posty.postingapi.mapper;
 
 import com.posty.postingapi.domain.post.Post;
+import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.dto.PostBlockResponse;
+import com.posty.postingapi.dto.PostCreateRequest;
 import com.posty.postingapi.dto.PostDetailResponse;
 import com.posty.postingapi.dto.PostSummary;
 
@@ -26,5 +28,12 @@ public class PostMapper {
                 entity.getTitle(),
                 entity.getCreatedAt()
         );
+    }
+
+    public static Post toEntity(PostCreateRequest request, Series series) {
+        return Post.builder()
+                .series(series)
+                .title(request.getTitle())
+                .build();
     }
 }
