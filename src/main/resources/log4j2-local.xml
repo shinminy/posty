@@ -12,7 +12,7 @@
     </Appenders>
 
     <Loggers>
-        <Root level="debug">
+        <Root level="DEBUG">
             <AppenderRef ref="Console"/>
         </Root>
 
@@ -22,5 +22,8 @@
 
         <!-- HikariCP 로그 설정 -->
         <Logger name="com.zaxxer.hikari" level="INFO" additivity="false"/>
+
+        <!-- ActiveMQ 로그 설정 -->
+        <Logger name="org.apache.activemq" level="INFO" additivity="false"/>
     </Loggers>
 </Configuration>

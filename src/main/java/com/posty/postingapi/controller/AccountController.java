@@ -3,7 +3,7 @@ package com.posty.postingapi.controller;
 import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.*;
 import com.posty.postingapi.error.CommonErrorResponses;
-import com.posty.postingapi.service.AccountService;
+import com.posty.postingapi.service.application.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;

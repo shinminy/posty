@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Getter
 @ToString
 public class PostBlock {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,7 +27,7 @@ public class PostBlock {
     private Post post;
 
     @Column(nullable = false)
-    private int orderNo;
+    private Integer orderNo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id", nullable = false)
@@ -34,11 +35,13 @@ public class PostBlock {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PostBlockType blockType;
+    private ContentType contentType;
 
-    private String content;
+    private String textContent;
 
-    private String mediaUrl;
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @JoinColumn(name = "media_id")
+    private Media media;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

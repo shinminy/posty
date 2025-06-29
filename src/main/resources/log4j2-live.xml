@@ -28,9 +28,9 @@
     </Appenders>
 
     <Loggers>
-        <Root level="info">
+        <Root level="INFO">
             <AppenderRef ref="RollingFile"/>
-            <AppenderRef ref="ErrorRollingFile" level="error"/>
+            <AppenderRef ref="ErrorRollingFile" level="ERROR"/>
         </Root>
 
         <!-- RMI 관련 로그 설정 -->
@@ -39,5 +39,8 @@
 
         <!-- HikariCP 로그 설정 -->
         <Logger name="com.zaxxer.hikari" level="INFO" additivity="false"/>
+
+        <!-- ActiveMQ 로그 설정 -->
+        <Logger name="org.apache.activemq" level="INFO" additivity="false"/>
     </Loggers>
 </Configuration>

@@ -5,7 +5,7 @@ import com.posty.postingapi.dto.SeriesCreateRequest;
 import com.posty.postingapi.dto.SeriesDetailResponse;
 import com.posty.postingapi.dto.SeriesUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
-import com.posty.postingapi.service.SeriesService;
+import com.posty.postingapi.service.application.SeriesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

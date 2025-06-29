@@ -11,19 +11,34 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "scheduler")
 public class SchedulerConfig {
 
-    private Account account = new Account();
+    private AccountSchedulerConfig account = new AccountSchedulerConfig();
+    private MediaSchedulerConfig media = new MediaSchedulerConfig();
 
     @Getter
     @Setter
-    public static class Account {
+    public static class AccountSchedulerConfig {
 
-        private Deletion deletion = new Deletion();
+        private AccountDeletionConfig deletion = new AccountDeletionConfig();
 
         @Getter
         @Setter
-        public static class Deletion {
+        public static class AccountDeletionConfig {
 
             private int gracePeriodDays;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class MediaSchedulerConfig {
+
+        private MediaRetryConfig retry = new MediaRetryConfig();
+
+        @Getter
+        @Setter
+        public static class MediaRetryConfig {
+
+            private int maxCount;
         }
     }
 }

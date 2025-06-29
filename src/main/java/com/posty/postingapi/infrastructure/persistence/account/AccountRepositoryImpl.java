@@ -1,5 +1,9 @@
-package com.posty.postingapi.domain.account;
+package com.posty.postingapi.infrastructure.persistence.account;
 
+import com.posty.postingapi.domain.account.Account;
+import com.posty.postingapi.domain.account.AccountRepositoryCustom;
+import com.posty.postingapi.domain.account.AccountStatus;
+import com.posty.postingapi.domain.account.QAccount;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;

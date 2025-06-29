@@ -1,6 +1,5 @@
 package com.posty.postingapi.dto;
 
-import com.posty.postingapi.domain.post.PostBlockType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,10 +21,8 @@ public class PostBlockResponse {
 
     private AccountSummary writer;
 
-    private PostBlockType blockType;
-
-    @Schema(description = "blockType이 TEXT면 HTML, 이외에는 URL")
-    private String content;
+    @Schema(oneOf = { TextContentResponse.class, MediaContentResponse.class })
+    private ContentResponse content;
 
     private LocalDateTime createdAt;
 
