@@ -1,2 +1,2 @@
 rootProject.name = 'posty'
-include 'posting-api'
+include 'posting-api', 'media-api'
