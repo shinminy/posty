@@ -67,14 +67,14 @@ jobs:
       - name: Get JAR file name
         id: get-jar
         run: |
-          JAR_FILENAME=$(ls build/*.jar | sort -r | head -n 1 | xargs -n 1 basename)
+          JAR_FILENAME=$(ls posting-api/build/*.jar | sort -r | head -n 1 | xargs -n 1 basename)
           echo "JAR_FILENAME=$JAR_FILENAME" >> $GITHUB_ENV
 
       - name: Debug JAR path
         run: |
-          echo "📌 Checking if file exists: build/${{ env.JAR_FILENAME }}"
-          ls -al build/
-          if [ -f "build/${{ env.JAR_FILENAME }}" ]; then
+          echo "📌 Checking if file exists: posting-api/build/${{ env.JAR_FILENAME }}"
+          ls -al posting-api/build/
+          if [ -f "posting-api/build/${{ env.JAR_FILENAME }}" ]; then
             echo "✅ File exists"
           else
             echo "❌ File does not exist"
@@ -88,7 +88,7 @@ jobs:
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
-          source: build/${{ env.JAR_FILENAME }}
+          source: posting-api/build/${{ env.JAR_FILENAME }}
           target: ${{ env.HOME_DIR }}/jars/
           strip_components: 1
 
