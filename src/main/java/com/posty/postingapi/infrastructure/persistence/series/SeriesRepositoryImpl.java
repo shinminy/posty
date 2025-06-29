@@ -1,5 +1,6 @@
-package com.posty.postingapi.domain.series;
+package com.posty.postingapi.infrastructure.persistence.series;
 
+import com.posty.postingapi.domain.series.SeriesRepositoryCustom;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;

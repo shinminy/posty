@@ -1,5 +1,8 @@
-package com.posty.postingapi.domain.account;
+package com.posty.postingapi.infrastructure.persistence.account;
 
+import com.posty.postingapi.domain.account.AccountDeletionSchedule;
+import com.posty.postingapi.domain.account.AccountDeletionScheduleRepositoryCustom;
+import com.posty.postingapi.domain.account.QAccountDeletionSchedule;
 import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

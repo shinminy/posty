@@ -1,4 +1,4 @@
-package com.posty.postingapi.service;
+package com.posty.postingapi.service.application;
 
 import com.posty.postingapi.domain.common.WriterSearch;
 import com.posty.postingapi.domain.post.Post;

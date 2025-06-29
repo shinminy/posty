@@ -1,6 +1,7 @@
 package com.posty.postingapi.domain.common;
 
 import com.posty.postingapi.domain.post.PostBlockRepository;
+import com.posty.postingapi.infrastructure.cache.RedisManager;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

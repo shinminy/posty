@@ -1,4 +1,4 @@
-package com.posty.postingapi.domain.common;
+package com.posty.postingapi.infrastructure.cache;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
