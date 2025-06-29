@@ -23,7 +23,6 @@ public class PostMapper {
     public static PostSummary toPostSummary(Post entity) {
         return new PostSummary(
                 entity.getId(),
-                entity.getOrderNo(),
                 entity.getTitle(),
                 entity.getCreatedAt()
         );

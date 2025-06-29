@@ -2,10 +2,9 @@
 create table post (
     id bigint auto_increment primary key,
     series_id bigint not null,
-    order_no int not null,
     title varchar(64) not null,
     created_at datetime not null default current_timestamp,
-    updated_at datetime not null default current_timestamp on update  current_timestamp,
+    updated_at datetime not null default current_timestamp on update current_timestamp,
     foreign key (series_id) references series(id)
 );
 

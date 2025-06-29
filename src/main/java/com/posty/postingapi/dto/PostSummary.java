@@ -1,6 +1,5 @@
 package com.posty.postingapi.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,9 +14,6 @@ import java.time.LocalDateTime;
 public class PostSummary {
 
     private Long id;
-
-    @Schema(description = "포스트 순서 (번호)")
-    private Integer order;
 
     private String title;
 

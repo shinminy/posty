@@ -19,6 +19,7 @@ import java.util.List;
 @Getter
 @ToString
 public class Post {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,9 +27,6 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "series_id", nullable = false)
     private Series series;
-
-    @Column(nullable = false)
-    private int orderNo;
 
     @Column(nullable = false)
     private String title;
