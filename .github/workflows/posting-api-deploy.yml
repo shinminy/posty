@@ -90,7 +90,7 @@ jobs:
           passphrase: ${{ env.PASSPHRASE }}
           source: posting-api/build/${{ env.JAR_FILENAME }}
           target: ${{ env.HOME_DIR }}/jars/
-          strip_components: 1
+          strip_components: 2
 
       - name: Run deploy script on the server
         uses: appleboy/ssh-action@v0.1.10
