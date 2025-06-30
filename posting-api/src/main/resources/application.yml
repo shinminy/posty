@@ -7,19 +7,9 @@ api:
   xff-header-name: X-Forwarded-For
 
 media:
-  temp-path: ${TEMP_FILE_PATH}
-  max-size: 10 #MB
-  upload:
-    queue-name: media-upload-queue
-    file-server:
-      base-url: ${FILE_SERVER_BASE_URL}
-      upload-path: ${FILE_SERVER_UPLOAD_PATH}
-  download:
-    connect-timeout: 5000 #ms
-    read-timeout: 10000 #ms
-  clamav:
-    host: ${CLAMAV_HOST}
-    port: 3310
+  upload-queue-name: media-upload-queue
+  upload-url: ${FILE_UPLOAD_URL}
+  upload-token: ${FILE_UPLOAD_TOKEN}
 
 scheduler:
   account:
@@ -29,7 +19,7 @@ scheduler:
   media:
     retry:
       max-count: 2
-      cron: "0 46 * * * *" #"0 15 0/3 * * *"
+      cron: "0 15 0/3 * * *"
 
 server:
   port: 15793

@@ -1,8 +1,8 @@
 package com.posty.postingapi.dto;
 
+import com.posty.common.domain.post.MediaType;
 import com.posty.postingapi.domain.post.ContentType;
 import com.posty.postingapi.domain.post.MediaStatus;
-import com.posty.postingapi.domain.post.MediaType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;

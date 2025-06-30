@@ -1,5 +1,6 @@
 package com.posty.postingapi.domain.post;
 
+import com.posty.common.domain.post.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

@@ -1,6 +1,6 @@
 package com.posty.postingapi.service.scheduler;
 
-import com.posty.postingapi.config.SchedulerConfig;
+import com.posty.postingapi.properties.SchedulerConfig;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.mq.MediaEventPublisher;
 import jakarta.transaction.Transactional;
@@ -31,16 +31,24 @@ public class MediaRetryService {
         maxRetryCount = schedulerConfig.getMedia().getRetry().getMaxCount();
     }
 
-    @Transactional
     public void retryFailedUploads() {
         List<Media> failedMedia = mediaRepository.findFailedMediaForRetry(maxRetryCount);
-        for (Media media : failedMedia) {
-            Long mediaId = media.getId();
 
-            mediaRepository.save(media.pending());
+        List<Long> pendingMediaIds = pendingMedia(failedMedia).stream()
+                .map(Media::getId)
+                .toList();
+
+        for (Long mediaId : pendingMediaIds) {
             mediaEventPublisher.publishMediaUpload(mediaId);
-
-            log.debug("Re-sent media {} to upload queue", mediaId);
         }
+        log.debug("Re-sent media to upload queue: {}", pendingMediaIds);
+    }
+
+    @Transactional
+    public List<Media> pendingMedia(List<Media> failedMedia) {
+        return failedMedia.stream()
+                .map(Media::pending)
+                .map(mediaRepository::save)
+                .toList();
     }
 }

@@ -2,7 +2,7 @@ package com.posty.postingapi.aspect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.posty.postingapi.config.ApiConfig;
+import com.posty.postingapi.properties.ApiConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

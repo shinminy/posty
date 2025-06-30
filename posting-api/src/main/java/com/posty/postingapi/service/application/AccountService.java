@@ -1,6 +1,6 @@
 package com.posty.postingapi.service.application;
 
-import com.posty.postingapi.config.SchedulerConfig;
+import com.posty.postingapi.properties.SchedulerConfig;
 import com.posty.postingapi.domain.account.*;
 import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.posty.postingapi.dto.*;
