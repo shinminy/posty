@@ -1,6 +1,6 @@
 package com.posty.postingapi.security;
 
-import com.posty.postingapi.config.ApiConfig;
+import com.posty.postingapi.properties.ApiConfig;
 import com.posty.postingapi.security.apikey.ApiKeyRepository;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;

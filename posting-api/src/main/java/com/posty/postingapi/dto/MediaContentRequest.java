@@ -1,7 +1,7 @@
 package com.posty.postingapi.dto;
 
+import com.posty.common.domain.post.MediaType;
 import com.posty.postingapi.domain.post.ContentType;
-import com.posty.postingapi.domain.post.MediaType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

@@ -17,9 +17,13 @@ public class MediaEventConsumer {
     }
 
     @Transactional
-    @JmsListener(destination = "${media.upload.queue-name}")
+    @JmsListener(destination = "${media.upload-queue-name}")
     public void consumeMediaUpload(Long mediaId) {
         log.debug("Received media upload request for media {}", mediaId);
-        mediaService.upload(mediaId);
+        if (mediaService.upload(mediaId)) {
+            log.debug("Media {} upload succeeded!", mediaId);
+        } else {
+            log.debug("Media {} upload failed...", mediaId);
+        }
     }
 }

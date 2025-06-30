@@ -1,6 +1,6 @@
 package com.posty.postingapi.aspect;
 
-import com.posty.postingapi.config.ApiConfig;
+import com.posty.postingapi.properties.ApiConfig;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
