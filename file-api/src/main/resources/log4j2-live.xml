@@ -7,8 +7,8 @@
 
     <Appenders>
         <RollingFile name="RollingFile"
-                     fileName="${BASE_DIR}/postingapi.log"
-                     filePattern="${BASE_DIR}/postingapi.%d{yyyyMMdd}.log">
+                     fileName="${BASE_DIR}/fileapi.log"
+                     filePattern="${BASE_DIR}/fileapi.%d{yyyyMMdd}.log">
             <PatternLayout pattern="${LOG_FORMAT}"/>
 
             <Policies>
@@ -17,8 +17,8 @@
         </RollingFile>
 
         <RollingFile name="ErrorRollingFile"
-                     fileName="${BASE_DIR}/postingapi_error.log"
-                     filePattern="${BASE_DIR}/postingapi_error.%d{yyyyMMdd}.log">
+                     fileName="${BASE_DIR}/fileapi_error.log"
+                     filePattern="${BASE_DIR}/fileapi_error.%d{yyyyMMdd}.log">
             <PatternLayout pattern="${LOG_FORMAT}"/>
 
             <Policies>
