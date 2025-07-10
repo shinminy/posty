@@ -39,7 +39,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build posting-api module
-        run: ./gradlew :posting-api:clean :posting-api:build -x test
+        run: ./gradlew :common:clean :common:build :posting-api:clean :posting-api:build -x test
 
       - name: Upload posting-api JAR artifact
         uses: actions/upload-artifact@v4

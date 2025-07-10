@@ -39,7 +39,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build file-api module
-        run: ./gradlew :file-api:clean :file-api:build -x test
+        run: ./gradlew :common:clean :common:build :file-api:clean :file-api:build -x test
 
       - name: Upload file-api JAR artifact
         uses: actions/upload-artifact@v4
