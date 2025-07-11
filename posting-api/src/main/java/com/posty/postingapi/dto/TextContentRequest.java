@@ -22,7 +22,7 @@ public class TextContentRequest extends ContentRequest {
     @Override
     public void normalize() {
         if (text != null) {
-            text = text.trim().toLowerCase();
+            text = text.trim();
         }
     }
 }

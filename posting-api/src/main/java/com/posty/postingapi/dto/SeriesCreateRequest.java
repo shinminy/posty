@@ -30,11 +30,11 @@ public class SeriesCreateRequest {
 
     public void normalize() {
         if (title != null) {
-            title = title.trim().toLowerCase();
+            title = title.trim();
         }
 
         if (description != null) {
-            description = description.trim().toLowerCase();
+            description = description.trim();
         }
 
         if (accountIds != null) {

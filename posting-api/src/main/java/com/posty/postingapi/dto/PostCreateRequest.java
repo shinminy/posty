@@ -28,7 +28,7 @@ public class PostCreateRequest {
 
     public void normalize() {
         if (title != null) {
-            title = title.trim().toLowerCase();
+            title = title.trim();
         }
 
         if (blocks != null) {
