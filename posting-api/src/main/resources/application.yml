@@ -18,7 +18,7 @@ scheduler:
       cron: "0 5 0 * * *"
   media:
     retry:
-      max-count: 2
+      max-try-count: 2
       cron: "0 15 0/3 * * *"
 
 server:
