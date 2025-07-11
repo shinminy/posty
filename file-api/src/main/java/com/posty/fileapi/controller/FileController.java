@@ -4,6 +4,7 @@ import com.posty.common.dto.FileRequest;
 import com.posty.common.dto.FileResponse;
 import com.posty.fileapi.dto.FileData;
 import com.posty.fileapi.service.FileService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 
+@Slf4j
 @RestController
 @RequestMapping("/file")
 public class FileController {
@@ -47,11 +49,17 @@ public class FileController {
         try {
             fileName = fileService.storeFile(fileRequest.getMediaType(), fileRequest.getOriginUrl());
         } catch (MalformedURLException e) {
-            return ResponseEntity.badRequest().body("Invalid URL!");
+            String message = "Invalid URL!";
+            log.error("{}", message, e);
+            return ResponseEntity.badRequest().body(message);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            String message = e.getMessage();
+            log.error("{}", message, e);
+            return ResponseEntity.badRequest().body(message);
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Failed to save file...");
+            String message = "Failed to save file...";
+            log.error("{}", message, e);
+            return ResponseEntity.internalServerError().body(message);
         }
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
