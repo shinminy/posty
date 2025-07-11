@@ -1,4 +1,4 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.series;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

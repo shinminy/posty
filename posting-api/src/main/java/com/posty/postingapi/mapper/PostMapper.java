@@ -2,10 +2,10 @@ package com.posty.postingapi.mapper;
 
 import com.posty.postingapi.domain.post.Post;
 import com.posty.postingapi.domain.series.Series;
-import com.posty.postingapi.dto.PostBlockResponse;
-import com.posty.postingapi.dto.PostCreateRequest;
-import com.posty.postingapi.dto.PostDetailResponse;
-import com.posty.postingapi.dto.PostSummary;
+import com.posty.postingapi.dto.post.PostBlockResponse;
+import com.posty.postingapi.dto.post.PostCreateRequest;
+import com.posty.postingapi.dto.post.PostDetailResponse;
+import com.posty.postingapi.dto.post.PostSummary;
 
 import java.util.List;
 

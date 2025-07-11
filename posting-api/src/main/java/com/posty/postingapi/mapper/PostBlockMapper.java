@@ -2,7 +2,7 @@ package com.posty.postingapi.mapper;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.post.*;
-import com.posty.postingapi.dto.*;
+import com.posty.postingapi.dto.post.*;
 
 public class PostBlockMapper {
 

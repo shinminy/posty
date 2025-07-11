@@ -1,4 +1,4 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.post;
 
 import com.posty.postingapi.domain.post.ContentType;
 import jakarta.validation.constraints.NotEmpty;

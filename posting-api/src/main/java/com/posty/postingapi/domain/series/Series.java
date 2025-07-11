@@ -2,7 +2,7 @@ package com.posty.postingapi.domain.series;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.post.Post;
-import com.posty.postingapi.dto.SeriesUpdateRequest;
+import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
