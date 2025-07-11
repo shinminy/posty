@@ -28,7 +28,7 @@ public class MediaContentRequest extends ContentRequest {
     @Override
     public void normalize() {
         if (originMediaUrl != null) {
-            originMediaUrl = originMediaUrl.trim().toLowerCase();
+            originMediaUrl = originMediaUrl.trim();
         }
     }
 }
