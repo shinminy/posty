@@ -34,7 +34,7 @@
 포스팅 서비스를 위한 내부 REST API입니다. (현재 링크된 주소는 개발용 localhost 주소입니다. 서버 주소는 따로 알려드립니다.)
 
 * API 문서 : [Swagger UI](https://localhost:15793/docs/swagger-ui/index.html)
-* ActiveMQ 관리 페이지 : [ActiveMQ Console](http://localhost:8161/admin/index.jsp)입니다.
+* ActiveMQ 관리 페이지 : [ActiveMQ Console](https://localhost:8162/admin/index.jsp)입니다.
 
 ### file-api
 

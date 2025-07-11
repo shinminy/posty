@@ -82,9 +82,10 @@ public class FileService {
             throw new IllegalArgumentException("Invalid file size!");
         }
 
-        if (fileValidator.isMaliciousFile(tempFilePath)) {
-            throw new IllegalArgumentException("Malicious file!");
-        }
+        // TODO: 서버 저장 공간 문제 해결 후 악성 파일 검사 기능 활성화
+        //  if (fileValidator.isMaliciousFile(tempFilePath)) {
+        //      throw new IllegalArgumentException("Malicious file!");
+        //  }
 
         String fileName = System.currentTimeMillis() + UUIDUtil.getUUIDWithoutDash() + dotExtension;
         Path targetPath = basePath.resolve(fileName);
