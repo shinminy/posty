@@ -9,11 +9,16 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  SERVICE_NAME: file-api
+
 jobs:
 
   build:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-24.04
+    env:
+      DEPENDENCY_MODULE: :common:clean :common:build
 
     steps:
       - name: Checkout code
@@ -38,57 +43,57 @@ jobs:
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x ./gradlew
 
-      - name: Build file-api module
-        run: ./gradlew :common:clean :common:build :file-api:clean :file-api:build -x test
+      - name: Build ${{ env.SERVICE_NAME }} module
+        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:build -x test
 
-      - name: Upload file-api JAR artifact
+      - name: Upload ${{ env.SERVICE_NAME }} JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: file-api-jar
-          path: file-api/build/*.jar
+          name: ${{ env.SERVICE_NAME }}-jar
+          path: ${{ env.SERVICE_NAME }}/build/*.jar
 
   deploy:
     runs-on: ubuntu-24.04
     needs: build
     env:
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      HOST: ${{ secrets.SERVER_HOST }}
-      KEY: ${{ secrets.SERVER_PRIVATE_KEY }}
-      PASSPHRASE: ${{ secrets.SERVER_PRIVATE_KEY_PASSPHRASE }}
-      HOME_DIR: ${{ secrets.HOME_DIR }}
+      DEPLOY_USER: ${{ vars.FILEAPI_DEPLOY_USER }}
+      HOST: ${{ vars.FILEAPI_SERVER_HOST }}
+      KEY: ${{ secrets.FILEAPI_SERVER_PRIVATE_KEY }}
+      PASSPHRASE: ${{ secrets.FILEAPI_SERVER_PRIVATE_KEY_PASSPHRASE }}
+      HOME_DIR: ${{ vars.FILEAPI_HOME_DIR }}
 
     steps:
-      - name: Download file-api JAR artifact
+      - name: Download ${{ env.SERVICE_NAME }} JAR artifact
         uses: actions/download-artifact@v4
         with:
-          name: file-api-jar
-          path: file-api/build
+          name: ${{ env.SERVICE_NAME }}-jar
+          path: ${{ env.SERVICE_NAME }}/build
 
       - name: Get JAR file name
         id: get-jar
         run: |
-          JAR_FILENAME=$(ls file-api/build/*.jar | sort -r | head -n 1 | xargs -n 1 basename)
+          JAR_FILENAME=$(ls ${{ env.SERVICE_NAME }}/build/*.jar | sort -r | head -n 1 | xargs -n 1 basename)
           echo "JAR_FILENAME=$JAR_FILENAME" >> $GITHUB_ENV
 
       - name: Debug JAR path
         run: |
-          echo "📌 Checking if file exists: file-api/build/${{ env.JAR_FILENAME }}"
-          ls -al file-api/build/
-          if [ -f "file-api/build/${{ env.JAR_FILENAME }}" ]; then
+          echo "📌 Checking if file exists: ${{ env.SERVICE_NAME }}/build/${{ env.JAR_FILENAME }}"
+          ls -al ${{ env.SERVICE_NAME }}/build/
+          if [ -f "${{ env.SERVICE_NAME }}/build/${{ env.JAR_FILENAME }}" ]; then
             echo "✅ File exists"
           else
             echo "❌ File does not exist"
             exit 1
           fi
 
-      - name: Copy file-api JAR to the server
+      - name: Copy ${{ env.SERVICE_NAME }} JAR to the server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.HOST }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
-          source: file-api/build/${{ env.JAR_FILENAME }}
+          source: ${{ env.SERVICE_NAME }}/build/${{ env.JAR_FILENAME }}
           target: ${{ env.HOME_DIR }}/jars/
           strip_components: 2
 
@@ -102,21 +107,21 @@ jobs:
           script: |
             set -e
             cd ${{ env.HOME_DIR }}
-            ln -sf jars/${{ env.JAR_FILENAME }} file-api
+            ln -sf jars/${{ env.JAR_FILENAME }} ${{ env.SERVICE_NAME }}
             echo "📌 Creating symlink..."
-            if [ ! -L file-api ]; then
+            if [ ! -L ${{ env.SERVICE_NAME }} ]; then
               echo "❌ Symlink creation failed"
               exit 1
             fi
               echo "✅ Symlink created successfully"
             echo "📌 Restarting service..."
-            if sudo systemctl restart file-api.service; then
+            if sudo systemctl restart ${{ env.SERVICE_NAME }}.service; then
               echo "✅ Service restarted"
             else
               echo "❌ Failed to restart the service"
               exit 1
             fi
-            if sudo systemctl status file-api.service | grep -q "Active: active"; then
+            if sudo systemctl status ${{ env.SERVICE_NAME }}.service | grep -q "Active: active"; then
               echo "✅ Service is active"
             else
               echo "❌ Service is not active"
