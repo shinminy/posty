@@ -14,8 +14,8 @@ import lombok.ToString;
         property = "type"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = TextContentRequest.class, name = "TEXT"),
-        @JsonSubTypes.Type(value = MediaContentRequest.class, name = "MEDIA")
+        @JsonSubTypes.Type(value = TextContentResponse.class, name = "TEXT"),
+        @JsonSubTypes.Type(value = MediaContentResponse.class, name = "MEDIA")
 })
 @AllArgsConstructor
 @Getter
