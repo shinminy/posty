@@ -60,7 +60,7 @@ jobs:
       HOST: ${{ vars.POSTINGAPI_SERVER_HOST }}
       KEY: ${{ secrets.POSTINGAPI_SERVER_PRIVATE_KEY }}
       PASSPHRASE: ${{ secrets.POSTINGAPI_SERVER_PRIVATE_KEY_PASSPHRASE }}
-      HOME_DIR: ${{ secrets.POSTINGAPI_HOME_DIR }}
+      HOME_DIR: ${{ vars.POSTINGAPI_HOME_DIR }}
 
     steps:
       - name: Download ${{ env.SERVICE_NAME }} JAR artifact
