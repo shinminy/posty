@@ -38,7 +38,7 @@ public class SchedulerConfig {
         @Setter
         public static class MediaRetryConfig {
 
-            private int maxCount;
+            private int maxTryCount;
         }
     }
 }

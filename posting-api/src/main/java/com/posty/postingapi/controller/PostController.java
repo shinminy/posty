@@ -1,8 +1,8 @@
 package com.posty.postingapi.controller;
 
 import com.posty.postingapi.aspect.ResponseLogging;
-import com.posty.postingapi.dto.PostCreateRequest;
-import com.posty.postingapi.dto.PostDetailResponse;
+import com.posty.postingapi.dto.post.PostCreateRequest;
+import com.posty.postingapi.dto.post.PostDetailResponse;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.PostService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,4 +1,4 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.account;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,11 @@
 package com.posty.postingapi.controller;
 
 import com.posty.postingapi.aspect.ResponseLogging;
-import com.posty.postingapi.dto.*;
+import com.posty.postingapi.dto.account.AccountCreateRequest;
+import com.posty.postingapi.dto.account.AccountDeleteResponse;
+import com.posty.postingapi.dto.account.AccountDetailResponse;
+import com.posty.postingapi.dto.account.AccountUpdateRequest;
+import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.AccountService;
 import io.swagger.v3.oas.annotations.Operation;

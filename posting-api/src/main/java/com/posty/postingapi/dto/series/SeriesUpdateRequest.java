@@ -1,7 +1,5 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.series;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,16 +14,15 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class SeriesCreateRequest {
+public class SeriesUpdateRequest {
 
-    @NotBlank
-    @Size(min = 1, max = 32)
+    @Size(max = 32)
     private String title;
 
     @Size(max = 1000)
     private String description;
 
-    @NotEmpty
+    @Size(min = 1)
     private List<Long> accountIds;
 
     public void normalize() {

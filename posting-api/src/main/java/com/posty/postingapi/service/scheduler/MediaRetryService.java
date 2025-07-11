@@ -28,7 +28,7 @@ public class MediaRetryService {
 
         this.mediaEventPublisher = mediaEventPublisher;
 
-        maxRetryCount = schedulerConfig.getMedia().getRetry().getMaxCount();
+        maxRetryCount = schedulerConfig.getMedia().getRetry().getMaxTryCount();
     }
 
     public void retryFailedUploads() {

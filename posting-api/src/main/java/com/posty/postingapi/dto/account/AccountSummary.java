@@ -1,21 +1,17 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
-
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-public class PostSummary {
+public class AccountSummary {
 
     private Long id;
 
-    private String title;
-
-    private LocalDateTime createdAt;
+    private String name;
 }

@@ -1,4 +1,4 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.account;
 
 import com.posty.postingapi.domain.account.AccountStatus;
 import io.swagger.v3.oas.annotations.media.Schema;

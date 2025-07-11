@@ -1,4 +1,4 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.post;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -21,9 +21,11 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public abstract class ContentResponse {
+public abstract class ContentRequest {
 
     // IMPORTANT: 'type' 필드명 변경 시, @JsonTypeInfo(property = "type")도 반드시 동일하게 변경해야 합니다.
     // CAUTION: 미반영 시 Jackson 직렬화/역직렬화 오류가 발생할 수 있습니다.
     private ContentType type;
+
+    public abstract void normalize();
 }

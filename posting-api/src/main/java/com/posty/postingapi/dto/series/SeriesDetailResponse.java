@@ -1,5 +1,7 @@
-package com.posty.postingapi.dto;
+package com.posty.postingapi.dto.series;
 
+import com.posty.postingapi.dto.post.PostSummary;
+import com.posty.postingapi.dto.account.AccountSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
