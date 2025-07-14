@@ -10,8 +10,8 @@
 * Framework: Spring Boot 3.4.3
 * Database: MariaDB 11
 * Cache: Redis 7
-* Message Broker: ActiveMQ Classic 6.1.7
-* Antivirus: ClamAV 1.4
+* Message Broker: Apache Tika 3.2.0, ActiveMQ Classic 6.1.7
+* File Security & Validation: ClamAV 1.4
 * Container: Docker 28 (MariaDB, Redis, ActiveMQ, ClamAV)
 * Build Tool: Gradle 8.13 (Groovy DSL)
 * Deployment: AWS EC2 (Ubuntu 24.04), systemd, GitHub Actions, Docker Compose
