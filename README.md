@@ -14,7 +14,7 @@
 * File Security & Validation: Apache Tika 3.2.0, ClamAV 1.4
 * Container: Docker 28 (MariaDB, Redis, ActiveMQ, ClamAV)
 * Build Tool: Gradle 8.13 (Groovy DSL)
-* Deployment: AWS EC2 (Ubuntu 24.04), systemd, GitHub Actions, Docker Compose
+* Deployment: AWS EC2 (Ubuntu 24.04), systemd, GitHub Actions, Docker Compose 2
 * Documentation: Springdoc OpenAPI (Swagger UI)
 
 ### 사용 도구 및 기타
