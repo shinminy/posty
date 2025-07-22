@@ -30,39 +30,61 @@ public class Media {
 
     private String storedUrl;
 
+    private String storedFilename;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MediaStatus status;
 
     @Column(nullable = false)
-    private Integer tryCount;
+    private Integer uploadAttemptCount;
+
+    @Column(nullable = false)
+    private Integer deleteAttemptCount;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    private LocalDateTime lastProcessedAt;
+    private LocalDateTime lastUploadAttemptAt;
 
-    public Media succeeded(String storedUrl, LocalDateTime lastProcessedAt) {
+    private LocalDateTime lastDeleteAttemptAt;
+
+    public Media uploaded(String storedUrl, String storedFilename, LocalDateTime lastProcessedAt) {
         return this.toBuilder()
-                .status(MediaStatus.SUCCESS)
+                .status(MediaStatus.UPLOADED)
                 .storedUrl(storedUrl)
-                .tryCount(tryCount + 1)
-                .lastProcessedAt(lastProcessedAt)
+                .storedFilename(storedFilename)
+                .uploadAttemptCount(uploadAttemptCount + 1)
+                .lastUploadAttemptAt(lastProcessedAt)
                 .build();
     }
 
-    public Media failed(LocalDateTime lastProcessedAt) {
+    public Media uploadFailed(LocalDateTime lastProcessedAt) {
         return this.toBuilder()
-                .status(MediaStatus.FAILED)
-                .tryCount(tryCount + 1)
-                .lastProcessedAt(lastProcessedAt)
+                .status(MediaStatus.UPLOAD_FAILED)
+                .uploadAttemptCount(uploadAttemptCount + 1)
+                .lastUploadAttemptAt(lastProcessedAt)
                 .build();
     }
 
-    public Media pending() {
+    public Media waitingUpload() {
         return this.toBuilder()
-                .status(MediaStatus.PENDING)
+                .status(MediaStatus.WAITING_UPLOAD)
+                .build();
+    }
+
+    public Media waitingDeletion() {
+        return this.toBuilder()
+                .status(MediaStatus.WAITING_DELETION)
+                .build();
+    }
+
+    public Media deletionFailed(LocalDateTime lastProcessedAt) {
+        return this.toBuilder()
+                .status(MediaStatus.DELETION_FAILED)
+                .deleteAttemptCount(deleteAttemptCount + 1)
+                .lastDeleteAttemptAt(lastProcessedAt)
                 .build();
     }
 }

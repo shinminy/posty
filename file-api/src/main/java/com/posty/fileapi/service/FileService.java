@@ -10,6 +10,7 @@ import com.posty.fileapi.infrastructure.FileDownloader;
 import com.posty.fileapi.infrastructure.FileValidator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -67,14 +68,14 @@ public class FileService {
     public String storeFile(MediaType mediaType, String originUrl) throws IOException {
         URL downloadUrl = new URL(originUrl);
 
-        FileNameParts fileNameParts = FileNameUtil.parseFileNameFromUrl(downloadUrl);
-        String dotExtension = fileNameParts.dotExtension();
-        String tempFileName = fileNameParts.name() + "-" + System.currentTimeMillis() + dotExtension;
-        Path tempFilePath = tempPath.resolve(tempFileName);
-
-        if (!fileValidator.isValidMimeType(downloadUrl, mediaType)) {
+        String dotExtension = fileValidator.getDotExtensionIfValidMimeType(downloadUrl, mediaType);
+        if (StringUtils.isBlank(dotExtension)) {
             throw new IllegalArgumentException("Invalid MIME type!");
         }
+
+        FileNameParts fileNameParts = FileNameUtil.parseFileNameFromUrl(downloadUrl);
+        String tempFileName = fileNameParts.name() + "-" + System.currentTimeMillis() + dotExtension;
+        Path tempFilePath = tempPath.resolve(tempFileName);
 
         fileDownloader.download(downloadUrl, tempFilePath);
 
@@ -100,5 +101,15 @@ public class FileService {
         }
 
         return fileName;
+    }
+
+    public void deleteFile(String fileName) throws IOException {
+        Path filePath = basePath.resolve(fileName);
+        if (!Files.exists(filePath)) {
+            throw new FileNotFoundException("File not found: " + fileName);
+        }
+
+        Files.delete(filePath);
+        log.info("File {} has been deleted!", fileName);
     }
 }

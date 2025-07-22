@@ -20,10 +20,21 @@ public class MediaEventConsumer {
     @JmsListener(destination = "${media.upload-queue-name}")
     public void consumeMediaUpload(Long mediaId) {
         log.debug("Received media upload request for media {}", mediaId);
-        if (mediaService.upload(mediaId)) {
+        if (mediaService.uploadMediaFile(mediaId)) {
             log.debug("Media {} upload succeeded!", mediaId);
         } else {
             log.debug("Media {} upload failed...", mediaId);
+        }
+    }
+
+    @Transactional
+    @JmsListener(destination = "${media.delete-queue-name}")
+    public void consumeMediaDelete(Long mediaId) {
+        log.debug("Received media delete request for media {}", mediaId);
+        if (mediaService.deleteMediaFile(mediaId)) {
+            log.debug("Media {} deletion succeeded!", mediaId);
+        } else {
+            log.debug("Media {} deletion failed...", mediaId);
         }
     }
 }

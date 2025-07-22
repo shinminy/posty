@@ -3,7 +3,7 @@ package com.posty.postingapi.service.scheduler;
 import com.posty.postingapi.properties.SchedulerConfig;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.mq.MediaEventPublisher;
-import jakarta.transaction.Transactional;
+import com.posty.postingapi.service.application.MediaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -13,42 +13,44 @@ import java.util.List;
 @Service
 public class MediaRetryService {
 
-    private final MediaRepository mediaRepository;
-
+    private final MediaService mediaService;
     private final MediaEventPublisher mediaEventPublisher;
 
-    private final int maxRetryCount;
+    private final int maxUploadAttemptCount;
+    private final int maxDeletionAttemptCount;
 
     public MediaRetryService(
-            MediaRepository mediaRepository,
+            MediaService mediaService,
             MediaEventPublisher mediaEventPublisher,
             SchedulerConfig schedulerConfig
     ) {
-        this.mediaRepository = mediaRepository;
-
+        this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
 
-        maxRetryCount = schedulerConfig.getMedia().getRetry().getMaxTryCount();
+        SchedulerConfig.MediaSchedulerConfig.MediaRetryConfig retryConfig = schedulerConfig.getMedia().getRetry();
+        maxUploadAttemptCount = retryConfig.getUpload().getMaxAttemptCount();
+        maxDeletionAttemptCount = retryConfig.getDelete().getMaxAttemptCount();
     }
 
     public void retryFailedUploads() {
-        List<Media> failedMedia = mediaRepository.findFailedMediaForRetry(maxRetryCount);
+        List<Media> preparedList = mediaService.prepareMediaForUploadRetry(maxUploadAttemptCount);
 
-        List<Long> pendingMediaIds = pendingMedia(failedMedia).stream()
+        List<Long> publishedIds = preparedList.stream()
+                .peek(mediaEventPublisher::publishMediaUpload)
                 .map(Media::getId)
                 .toList();
 
-        for (Long mediaId : pendingMediaIds) {
-            mediaEventPublisher.publishMediaUpload(mediaId);
-        }
-        log.debug("Re-sent media to upload queue: {}", pendingMediaIds);
+        log.debug("Re-sent media to upload queue: {}", publishedIds);
     }
 
-    @Transactional
-    public List<Media> pendingMedia(List<Media> failedMedia) {
-        return failedMedia.stream()
-                .map(Media::pending)
-                .map(mediaRepository::save)
+    public void retryFailedDeletions() {
+        List<Media> preparedList = mediaService.prepareMediaForDeletionRetry(maxDeletionAttemptCount);
+
+        List<Long> publishedIds = preparedList.stream()
+                .peek(mediaEventPublisher::publishMediaDelete)
+                .map(Media::getId)
                 .toList();
+
+        log.debug("Re-sent media to deletion queue: {}", publishedIds);
     }
 }

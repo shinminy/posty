@@ -30,6 +30,7 @@ public class PostService {
 
     private final WriterSearch writerSearch;
 
+    private final MediaService mediaService;
     private final MediaEventPublisher mediaEventPublisher;
 
     public PostService(
@@ -38,6 +39,7 @@ public class PostService {
             SeriesRepository seriesRepository,
             AccountRepository accountRepository,
             WriterSearch writerSearch,
+            MediaService mediaService,
             MediaEventPublisher mediaEventPublisher
     ) {
         this.postRepository = postRepository;
@@ -47,6 +49,7 @@ public class PostService {
 
         this.writerSearch = writerSearch;
 
+        this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
     }
 
@@ -91,15 +94,27 @@ public class PostService {
 
         Post saved = postRepository.save(post);
 
-        saved.getBlocks().forEach(block -> {
-            if (block.getContentType() != ContentType.TEXT) {
-                mediaEventPublisher.publishMediaUpload(block.getMedia().getId());
-            }
-        });
+        saved.getBlocks().stream()
+                .filter(block -> block.getContentType() == ContentType.MEDIA)
+                .map(PostBlock::getMedia)
+                .forEach(mediaEventPublisher::publishMediaUpload);
 
         List<String> writers = writerSearch.searchWritersOfPosts(saved.getId());
         List<PostBlockResponse> blocks = saved.getBlocks().stream().map(PostBlockMapper::toPostBlockResponse).toList();
 
         return PostMapper.toPostDetailResponse(saved, writers, blocks);
+    }
+
+    public void deletePost(Long postId) {
+        Post post = findPostById(postId);
+        List<Media> mediaList = post.getBlocks().stream()
+                .filter(block -> block.getContentType() == ContentType.MEDIA)
+                .map(PostBlock::getMedia)
+                .toList();
+
+        postRepository.delete(post);
+
+        List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
+        waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);
     }
 }

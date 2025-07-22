@@ -46,8 +46,9 @@ public class PostBlockMapper {
             Media media = Media.builder()
                     .mediaType(mediaContent.getMediaType())
                     .originUrl(mediaContent.getOriginMediaUrl())
-                    .status(MediaStatus.PENDING)
-                    .tryCount(0)
+                    .status(MediaStatus.WAITING_UPLOAD)
+                    .uploadAttemptCount(0)
+                    .deleteAttemptCount(0)
                     .build();
 
             return postBlockBuilder

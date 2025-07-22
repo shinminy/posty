@@ -4,10 +4,13 @@ create table media (
     media_type varchar(50) not null,
     origin_url varchar(500) not null,
     stored_url varchar(500),
+    stored_filename varchar(64),
     status varchar(30) not null,
-    try_count int not null default 0,
+    upload_attempt_count int not null default 0,
+    delete_attempt_count int not null default 0,
     created_at datetime not null default current_timestamp,
-    last_processed_at datetime
+    last_upload_attempt_at datetime,
+    last_delete_attempt_at datetime
 );
 
 # drop index idx_media_status on media;

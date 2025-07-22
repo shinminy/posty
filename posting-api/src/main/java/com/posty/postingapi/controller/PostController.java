@@ -56,4 +56,12 @@ public class PostController {
                 .toUri();
         return ResponseEntity.created(location).body(body);
     }
+
+    @Operation(summary = "포스트 삭제", description = "포스트 삭제를 요청합니다. 해당 포스트에 속한 미디어 파일도 전부 삭제됩니다.")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId);
+        return ResponseEntity.noContent().build();
+    }
 }

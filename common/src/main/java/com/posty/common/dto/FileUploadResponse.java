@@ -7,7 +7,9 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class FileResponse {
+public class FileUploadResponse {
 
     private String storedUrl;
+
+    private String storedFilename;
 }
