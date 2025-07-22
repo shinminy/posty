@@ -16,10 +16,17 @@ public class MediaScheduler {
         this.mediaRetryService = mediaRetryService;
     }
 
-    @Scheduled(cron = "${scheduler.media.retry.cron}")
-    public void runMediaRetry() {
-        log.info("Media retry scheduler started...");
+    @Scheduled(cron = "${scheduler.media.retry.upload.cron}")
+    public void runMediaUploadRetry() {
+        log.info("Media upload retry scheduler started...");
         mediaRetryService.retryFailedUploads();
-        log.info("Media retry scheduler finished!");
+        log.info("Media upload retry scheduler finished!");
+    }
+
+    @Scheduled(cron = "${scheduler.media.retry.delete.cron}")
+    public void runMediaDeletionRetry() {
+        log.info("Media deletion retry scheduler started...");
+        mediaRetryService.retryFailedDeletions();
+        log.info("Media deletion retry scheduler finished!");
     }
 }

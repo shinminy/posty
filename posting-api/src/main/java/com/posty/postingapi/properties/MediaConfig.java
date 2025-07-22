@@ -11,7 +11,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "media")
 public class MediaConfig {
 
+    private String fileApiUrl;
+    private String fileApiToken;
     private String uploadQueueName;
-    private String uploadUrl;
-    private String uploadToken;
+    private String deleteQueueName;
 }

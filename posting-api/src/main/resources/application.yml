@@ -7,9 +7,10 @@ api:
   xff-header-name: X-Forwarded-For
 
 media:
+  file-api-url: ${FILE_API_URL}
+  file-api-token: ${FILE_API_TOKEN}
   upload-queue-name: media-upload-queue
-  upload-url: ${FILE_UPLOAD_URL}
-  upload-token: ${FILE_UPLOAD_TOKEN}
+  delete-queue-name: media-delete-queue
 
 scheduler:
   account:
@@ -18,8 +19,12 @@ scheduler:
       cron: "0 5 0 * * *"
   media:
     retry:
-      max-try-count: 2
-      cron: "0 15 0/3 * * *"
+      upload:
+        max-attempt-count: 2
+        cron: "0 15 0/3 * * *"
+      delete:
+        max-attempt-count: 2
+        cron: "0 45 1,4,7,10,13,16,19,22 * * *"
 
 server:
   port: 15793

@@ -4,6 +4,8 @@ import com.posty.common.domain.post.MediaType;
 import com.posty.fileapi.properties.ValidationConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -33,19 +35,20 @@ public class FileValidator {
         return tika.detect(filePath);
     }
 
-    public boolean isValidMimeType(URL url, MediaType expected) throws IOException {
+    public String getDotExtensionIfValidMimeType(URL url, MediaType expected) throws IOException {
         String detectedType = tika.detect(url);
         log.debug("Detected type is {}", detectedType);
 
-        switch (expected) {
-            case IMAGE:
-                return detectedType.startsWith("image/");
-            case VIDEO:
-                return detectedType.startsWith("video/");
-            case AUDIO:
-                return detectedType.startsWith("audio/");
-            default:
-                return false;
+        if (!expected.isValid(detectedType)) {
+            return null;
+        }
+
+        MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+        try {
+            return allTypes.forName(detectedType).getExtension();
+        } catch (MimeTypeException e) {
+            log.error("Failed to get extension from {}", detectedType, e);
+            return null;
         }
     }
 

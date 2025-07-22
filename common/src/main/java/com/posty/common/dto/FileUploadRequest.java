@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class FileRequest {
+public class FileUploadRequest {
 
     private MediaType mediaType;
 

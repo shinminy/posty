@@ -19,14 +19,26 @@ public class MediaRepositoryImpl implements MediaRepositoryCustom {
         this.queryFactory = new JPAQueryFactory(entityManager);
     }
 
-    public List<Media> findFailedMediaForRetry(int maxRetryCount) {
+    public List<Media> findMediaWithUploadFailures(int maxUploadAttemptCount) {
         QMedia qMedia = QMedia.media;
 
         return queryFactory
                 .selectFrom(qMedia)
                 .where(
-                        qMedia.status.eq(MediaStatus.FAILED),
-                        qMedia.tryCount.lt(maxRetryCount)
+                        qMedia.status.eq(MediaStatus.UPLOAD_FAILED),
+                        qMedia.uploadAttemptCount.lt(maxUploadAttemptCount)
+                )
+                .fetch();
+    }
+
+    public List<Media> findMediaWithDeletionFailures(int maxDeletionAttemptCount) {
+        QMedia qMedia = QMedia.media;
+
+        return queryFactory
+                .selectFrom(qMedia)
+                .where(
+                        qMedia.status.eq(MediaStatus.DELETION_FAILED),
+                        qMedia.deleteAttemptCount.lt(maxDeletionAttemptCount)
                 )
                 .fetch();
     }

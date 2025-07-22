@@ -13,6 +13,7 @@ import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mapper.SeriesMapper;
+import com.posty.postingapi.mq.MediaEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -31,17 +32,25 @@ public class SeriesService {
 
     private final WriterSearch writerSearch;
 
+    private final MediaService mediaService;
+    private final MediaEventPublisher mediaEventPublisher;
+
     public SeriesService(
             SeriesRepository seriesRepository,
             PostRepository postRepository,
             AccountRepository accountRepository,
-            WriterSearch writerSearch
+            WriterSearch writerSearch,
+            MediaService mediaService,
+            MediaEventPublisher mediaEventPublisher
     ) {
         this.seriesRepository = seriesRepository;
         this.postRepository = postRepository;
         this.accountRepository = accountRepository;
 
         this.writerSearch = writerSearch;
+
+        this.mediaService = mediaService;
+        this.mediaEventPublisher = mediaEventPublisher;
     }
 
     private Series findSeriesById(Long seriesId) {
@@ -103,6 +112,15 @@ public class SeriesService {
 
     public void deleteSeries(Long seriesId) {
         Series series = findSeriesById(seriesId);
+        List<Media> mediaList = series.getPosts().stream()
+                .flatMap(post -> post.getBlocks().stream())
+                .filter(block -> block.getContentType() == ContentType.MEDIA)
+                .map(PostBlock::getMedia)
+                .toList();
+
         seriesRepository.delete(series);
+
+        List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
+        waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);
     }
 }

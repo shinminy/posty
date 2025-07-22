@@ -38,7 +38,22 @@ public class SchedulerConfig {
         @Setter
         public static class MediaRetryConfig {
 
-            private int maxTryCount;
+            private MediaUploadRetryConfig upload = new MediaUploadRetryConfig();
+            private MediaDeleteRetryConfig delete = new MediaDeleteRetryConfig();
+
+            @Getter
+            @Setter
+            public static class MediaUploadRetryConfig {
+
+                private int maxAttemptCount;
+            }
+
+            @Getter
+            @Setter
+            public static class MediaDeleteRetryConfig {
+
+                private int maxAttemptCount;
+            }
         }
     }
 }

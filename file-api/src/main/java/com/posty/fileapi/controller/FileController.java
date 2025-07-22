@@ -1,7 +1,7 @@
 package com.posty.fileapi.controller;
 
-import com.posty.common.dto.FileRequest;
-import com.posty.common.dto.FileResponse;
+import com.posty.common.dto.FileUploadRequest;
+import com.posty.common.dto.FileUploadResponse;
 import com.posty.fileapi.dto.FileData;
 import com.posty.fileapi.service.FileService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,10 +44,10 @@ public class FileController {
     }
 
     @PostMapping
-    public ResponseEntity<?> upload(@RequestBody FileRequest fileRequest) {
+    public ResponseEntity<?> upload(@RequestBody FileUploadRequest request) {
         String fileName;
         try {
-            fileName = fileService.storeFile(fileRequest.getMediaType(), fileRequest.getOriginUrl());
+            fileName = fileService.storeFile(request.getMediaType(), request.getOriginUrl());
         } catch (MalformedURLException e) {
             String message = "Invalid URL!";
             log.error("{}", message, e);
@@ -66,6 +66,21 @@ public class FileController {
                 .pathSegment(fileName)
                 .build()
                 .toUri();
-        return ResponseEntity.created(location).body(new FileResponse(location.toString()));
+        return ResponseEntity.created(location).body(new FileUploadResponse(location.toString(), fileName));
+    }
+
+    @DeleteMapping("/{fileName}")
+    public ResponseEntity<?> deleteFile(@PathVariable String fileName) {
+        try {
+            fileService.deleteFile(fileName);
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            String message = "Failed to delete file...";
+            log.error("{}", message, e);
+            return ResponseEntity.internalServerError().body(message);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }
