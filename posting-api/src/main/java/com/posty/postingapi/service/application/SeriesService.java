@@ -112,11 +112,8 @@ public class SeriesService {
 
     public void deleteSeries(Long seriesId) {
         Series series = findSeriesById(seriesId);
-        List<Media> mediaList = series.getPosts().stream()
-                .flatMap(post -> post.getBlocks().stream())
-                .filter(block -> block.getContentType() == ContentType.MEDIA)
-                .map(PostBlock::getMedia)
-                .toList();
+
+        List<Media> mediaList = mediaService.findMediaBySeriesId(seriesId);
 
         seriesRepository.delete(series);
 

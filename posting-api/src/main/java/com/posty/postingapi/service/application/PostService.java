@@ -107,10 +107,8 @@ public class PostService {
 
     public void deletePost(Long postId) {
         Post post = findPostById(postId);
-        List<Media> mediaList = post.getBlocks().stream()
-                .filter(block -> block.getContentType() == ContentType.MEDIA)
-                .map(PostBlock::getMedia)
-                .toList();
+
+        List<Media> mediaList = mediaService.findMediaByPostId(postId);
 
         postRepository.delete(post);
 
