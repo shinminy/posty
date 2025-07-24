@@ -102,6 +102,14 @@ public class MediaService {
         return mediaRepository.saveAll(waitingList);
     }
 
+    public List<Media> findMediaBySeriesId(long seriesId) {
+        return mediaRepository.findMediaBySeriesId(seriesId);
+    }
+
+    public List<Media> findMediaByPostId(long postId) {
+        return mediaRepository.findMediaByPostId(postId);
+    }
+
     @Transactional
     public boolean uploadMediaFile(Long mediaId) {
         Media media = mediaRepository.findById(mediaId).orElse(null);
