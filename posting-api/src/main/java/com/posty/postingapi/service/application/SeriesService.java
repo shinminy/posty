@@ -2,7 +2,7 @@ package com.posty.postingapi.service.application;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
-import com.posty.postingapi.domain.common.WriterSearch;
+import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.domain.series.SeriesRepository;
@@ -30,7 +30,7 @@ public class SeriesService {
     private final PostRepository postRepository;
     private final AccountRepository accountRepository;
 
-    private final WriterSearch writerSearch;
+    private final WriterCacheManager writerCacheManager;
 
     private final MediaService mediaService;
     private final MediaEventPublisher mediaEventPublisher;
@@ -39,7 +39,7 @@ public class SeriesService {
             SeriesRepository seriesRepository,
             PostRepository postRepository,
             AccountRepository accountRepository,
-            WriterSearch writerSearch,
+            WriterCacheManager writerCacheManager,
             MediaService mediaService,
             MediaEventPublisher mediaEventPublisher
     ) {
@@ -47,7 +47,7 @@ public class SeriesService {
         this.postRepository = postRepository;
         this.accountRepository = accountRepository;
 
-        this.writerSearch = writerSearch;
+        this.writerCacheManager = writerCacheManager;
 
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
@@ -61,7 +61,7 @@ public class SeriesService {
     public SeriesDetailResponse getSeriesDetail(Long seriesId, int page, int size) {
         Series series = findSeriesById(seriesId);
 
-        List<String> writers = writerSearch.searchWritersOfSeries(seriesId);
+        List<String> writers = writerCacheManager.loadWritersOfSeries(seriesId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
         Page<Post> postData = postRepository.findAllBySeriesId(seriesId, pageable);
@@ -108,6 +108,8 @@ public class SeriesService {
 
         Series newSeries = oldSeries.updatedBy(request, managers);
         seriesRepository.save(newSeries);
+
+        writerCacheManager.clearWritersOfSeries(seriesId);
     }
 
     public void deleteSeries(Long seriesId) {
@@ -116,6 +118,8 @@ public class SeriesService {
         List<Media> mediaList = mediaService.findMediaBySeriesId(seriesId);
 
         seriesRepository.delete(series);
+
+        writerCacheManager.clearWritersOfSeries(seriesId);
 
         List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
         waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);
