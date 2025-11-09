@@ -2,7 +2,7 @@ package com.posty.postingapi.service.application;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
-import com.posty.postingapi.domain.common.WriterSearch;
+import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.domain.series.SeriesRepository;
@@ -28,7 +28,7 @@ public class PostService {
     private final SeriesRepository seriesRepository;
     private final AccountRepository accountRepository;
 
-    private final WriterSearch writerSearch;
+    private final WriterCacheManager writerCacheManager;
 
     private final MediaService mediaService;
     private final MediaEventPublisher mediaEventPublisher;
@@ -38,7 +38,7 @@ public class PostService {
             PostBlockRepository postBlockRepository,
             SeriesRepository seriesRepository,
             AccountRepository accountRepository,
-            WriterSearch writerSearch,
+            WriterCacheManager writerCacheManager,
             MediaService mediaService,
             MediaEventPublisher mediaEventPublisher
     ) {
@@ -47,7 +47,7 @@ public class PostService {
         this.seriesRepository = seriesRepository;
         this.accountRepository = accountRepository;
 
-        this.writerSearch = writerSearch;
+        this.writerCacheManager = writerCacheManager;
 
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
@@ -61,7 +61,7 @@ public class PostService {
     public PostDetailResponse getPostDetail(Long postId, int page, int size) {
         Post post = findPostById(postId);
 
-        List<String> writers = writerSearch.searchWritersOfPosts(postId);
+        List<String> writers = writerCacheManager.loadWritersOfPosts(postId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
         Page<PostBlock> blockData = postBlockRepository.findAllByPostId(postId, pageable);
@@ -99,7 +99,7 @@ public class PostService {
                 .map(PostBlock::getMedia)
                 .forEach(mediaEventPublisher::publishMediaUpload);
 
-        List<String> writers = writerSearch.searchWritersOfPosts(saved.getId());
+        List<String> writers = writerCacheManager.loadWritersOfPosts(saved.getId());
         List<PostBlockResponse> blocks = saved.getBlocks().stream().map(PostBlockMapper::toPostBlockResponse).toList();
 
         return PostMapper.toPostDetailResponse(saved, writers, blocks);
@@ -111,6 +111,8 @@ public class PostService {
         List<Media> mediaList = mediaService.findMediaByPostId(postId);
 
         postRepository.delete(post);
+
+        writerCacheManager.clearWritersOfPosts(postId);
 
         List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
         waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);

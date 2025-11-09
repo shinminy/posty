@@ -1,25 +1,24 @@
-package com.posty.postingapi.domain.common;
+package com.posty.postingapi.infrastructure.cache;
 
 import com.posty.postingapi.domain.post.PostBlockRepository;
-import com.posty.postingapi.infrastructure.cache.RedisManager;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-public class WriterSearch {
+public class WriterCacheManager {
 
     private static final String WRITER_KEY = "writers";
 
     private final RedisManager redisManager;
     private final PostBlockRepository postBlockRepository;
 
-    public WriterSearch(RedisManager redisManager, PostBlockRepository postBlockRepository) {
+    public WriterCacheManager(RedisManager redisManager, PostBlockRepository postBlockRepository) {
         this.redisManager = redisManager;
         this.postBlockRepository = postBlockRepository;
     }
 
-    public List<String> searchWritersOfSeries(long seriesId) {
+    public List<String> loadWritersOfSeries(long seriesId) {
         String redisKey = redisManager.createKey("series", String.valueOf(seriesId), WRITER_KEY);
 
         List<String> writers;
@@ -33,7 +32,7 @@ public class WriterSearch {
         return writers;
     }
 
-    public List<String> searchWritersOfPosts(long postId) {
+    public List<String> loadWritersOfPosts(long postId) {
         String redisKey = redisManager.createKey("post", String.valueOf(postId), WRITER_KEY);
 
         List<String> writers;
@@ -45,5 +44,15 @@ public class WriterSearch {
         }
 
         return writers;
+    }
+
+    public void clearWritersOfSeries(long seriesId) {
+        String redisKey = redisManager.createKey("series", String.valueOf(seriesId), WRITER_KEY);
+        redisManager.delete(redisKey);
+    }
+
+    public void clearWritersOfPosts(long postId) {
+        String redisKey = redisManager.createKey("post", String.valueOf(postId), WRITER_KEY);
+        redisManager.delete(redisKey);
     }
 }
