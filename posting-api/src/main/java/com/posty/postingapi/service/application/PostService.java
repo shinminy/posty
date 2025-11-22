@@ -66,7 +66,7 @@ public class PostService {
         List<String> writers = writerCacheManager.loadWritersOfPosts(postId);
 
         PageRequest pageable = PageRequest.of(page-1, size);
-        Page<PostBlock> blockData = postBlockRepository.findAllByPostId(postId, pageable);
+        Page<PostBlock> blockData = postBlockRepository.findPageByPostIdOrderByOrderNo(postId, pageable);
 
         List<PostBlockResponse> blocks = blockData.stream()
                 .map(PostBlockMapper::toPostBlockResponse)
