@@ -51,8 +51,10 @@ public class WriterCacheManager {
         redisManager.delete(redisKey);
     }
 
-    public void clearWritersOfPosts(long postId) {
+    public void clearWritersOfPosts(long postId, long seriesId) {
         String redisKey = redisManager.createKey("post", String.valueOf(postId), WRITER_KEY);
         redisManager.delete(redisKey);
+
+        clearWritersOfSeries(seriesId);
     }
 }

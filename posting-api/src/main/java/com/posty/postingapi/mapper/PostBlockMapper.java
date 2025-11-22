@@ -29,7 +29,14 @@ public class PostBlockMapper {
         ContentRequest content = request.getContent();
         ContentType contentType = content.getType();
 
-        PostBlock.PostBlockBuilder postBlockBuilder = PostBlock.builder()
+        PostBlock.PostBlockBuilder postBlockBuilder = PostBlock.builder();
+
+        if (request instanceof PostBlockUpdateRequest) {
+            PostBlockUpdateRequest postBlockUpdateRequest = (PostBlockUpdateRequest) request;
+            postBlockBuilder.id(postBlockUpdateRequest.getId());
+        }
+
+        postBlockBuilder
                 .post(post)
                 .orderNo(request.getOrderNo())
                 .writer(writer)
