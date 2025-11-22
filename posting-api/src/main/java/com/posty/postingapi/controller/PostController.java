@@ -3,6 +3,7 @@ package com.posty.postingapi.controller;
 import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.post.PostCreateRequest;
 import com.posty.postingapi.dto.post.PostDetailResponse;
+import com.posty.postingapi.dto.post.PostUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,6 +56,14 @@ public class PostController {
                 .buildAndExpand(body.getId())
                 .toUri();
         return ResponseEntity.created(location).body(body);
+    }
+
+    @Operation(summary = "포스트 수정", description = "포스트를 수정합니다.")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @PutMapping("/{postId}")
+    public ResponseEntity<Void> updatePost(@PathVariable Long postId, @Valid @RequestBody PostUpdateRequest request) {
+        postService.updatePost(postId, request);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "포스트 삭제", description = "포스트 삭제를 요청합니다. 해당 포스트에 속한 미디어 파일도 전부 삭제됩니다.")

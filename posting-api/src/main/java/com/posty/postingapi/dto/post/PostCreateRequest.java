@@ -24,7 +24,7 @@ public class PostCreateRequest {
     private String title;
 
     @NotEmpty
-    private List<PostBlockRequest> blocks;
+    private List<PostBlockCreateRequest> blocks;
 
     public void normalize() {
         if (title != null) {
@@ -34,7 +34,7 @@ public class PostCreateRequest {
         if (blocks != null) {
             blocks = blocks.stream()
                     .filter(block -> block != null)
-                    .peek(PostBlockRequest::normalize)
+                    .peek(PostBlockCreateRequest::normalize)
                     .toList();
         }
     }

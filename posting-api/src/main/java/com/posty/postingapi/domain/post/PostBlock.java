@@ -50,4 +50,52 @@ public class PostBlock {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    // Post 양방향 관계 유지용 (오용 방지를 위해 같은 패키지에서만 접근 가능하도록 접근 제어자 생략)
+    void setPost(Post post) {
+        this.post = post;
+    }
+
+    public void updateMeta(Integer orderNo, Account writer) {
+        this.orderNo = orderNo;
+        this.writer = writer;
+    }
+
+    public void updateContentAsText(String text) {
+        this.contentType = ContentType.TEXT;
+        this.textContent = text;
+        this.media = null;
+    }
+
+    public void updateContentAsMedia(Media media) {
+        this.contentType = ContentType.MEDIA;
+        this.media = media;
+        this.textContent = null;
+    }
+
+    public boolean hasSameContent(PostBlock other) {
+        if (this.contentType != other.contentType) {
+            return false;
+        }
+
+        if (this.contentType == ContentType.TEXT) {
+            String t1 = this.textContent;
+            String t2 = other.textContent;
+            return (t1 == null && t2 == null) || (t1 != null && t1.equals(t2));
+        }
+
+        if (this.media == null && other.media == null) {
+            return true;
+        }
+        if (this.media == null || other.media == null) {
+            return false;
+        }
+
+        boolean sameType = this.media.getMediaType() == other.media.getMediaType();
+        String u1 = this.media.getOriginUrl();
+        String u2 = other.media.getOriginUrl();
+        boolean sameUrl = (u1 == null && u2 == null) || (u1 != null && u1.equals(u2));
+
+        return sameType && sameUrl;
+    }
 }

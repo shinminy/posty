@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,4 +43,20 @@ public class Post {
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<PostBlock> blocks = new ArrayList<>();
+
+    public void updateTitle(String title) {
+        if (StringUtils.hasText(title)) {
+            this.title = title;
+        }
+    }
+
+    public void addBlock(PostBlock block) {
+        this.blocks.add(block);
+        block.setPost(this);
+    }
+
+    public void removeBlock(PostBlock block) {
+        this.blocks.remove(block);
+        block.setPost(null);
+    }
 }
