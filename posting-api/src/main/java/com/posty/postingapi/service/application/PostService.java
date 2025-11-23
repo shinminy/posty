@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -198,15 +197,12 @@ public class PostService {
     }
 
     private void processMedia(Map<Long, Media> oldMedia, Map<Long, Media> newMedia) {
-        Set<Long> oldMediaIds = oldMedia.keySet();
-        Set<Long> newMediaIds = newMedia.keySet();
-
         newMedia.values().stream()
-                .filter(media -> !oldMediaIds.contains(media.getId()))
+                .filter(media -> !oldMedia.containsKey(media.getId()))
                 .forEach(mediaEventPublisher::publishMediaUpload);
 
         List<Media> deletedMediaList = oldMedia.values().stream()
-                .filter(media -> !newMediaIds.contains(media.getId()))
+                .filter(media -> !newMedia.containsKey(media.getId()))
                 .toList();
         requestToDeleteMediaList(deletedMediaList);
     }
