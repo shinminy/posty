@@ -21,6 +21,7 @@ public class AccountCreateRequest {
 
     @NotBlank
     @Size(min = 10, max = 128)
+    @ToString.Exclude
     private String password;
 
     @NotBlank

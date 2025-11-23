@@ -32,6 +32,7 @@ public class Account {
     private String email;
 
     @Column(nullable = false)
+    @ToString.Exclude
     private String password;
 
     @Column(nullable = false, unique = true)

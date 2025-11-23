@@ -4,6 +4,7 @@ import com.posty.postingapi.dto.account.AccountCreateRequest;
 import com.posty.postingapi.dto.account.AccountDeleteResponse;
 import com.posty.postingapi.dto.account.AccountDetailResponse;
 import com.posty.postingapi.dto.account.AccountUpdateRequest;
+import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.properties.SchedulerConfig;
 import com.posty.postingapi.domain.account.*;
 import com.posty.postingapi.domain.common.ScheduleStatus;
@@ -32,6 +33,8 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountDeletionScheduleRepository accountDeletionScheduleRepository;
 
+    private final WriterCacheManager writerCacheManager;
+
     private final Clock clock;
     private final PasswordEncoder passwordEncoder;
 
@@ -39,10 +42,13 @@ public class AccountService {
 
     public AccountService(
             AccountRepository accountRepository, AccountDeletionScheduleRepository accountDeletionScheduleRepository,
+            WriterCacheManager writerCacheManager,
             Clock clock, PasswordEncoder passwordEncoder, SchedulerConfig schedulerConfig
     ) {
         this.accountRepository = accountRepository;
         this.accountDeletionScheduleRepository = accountDeletionScheduleRepository;
+
+        this.writerCacheManager = writerCacheManager;
 
         this.clock = clock;
         this.passwordEncoder = passwordEncoder;
@@ -91,8 +97,9 @@ public class AccountService {
 
         request.normalize();
 
+        String oldName = oldAccount.getName();
         String newName = request.getName();
-        if (StringUtils.hasText(newName) && !oldAccount.getName().equalsIgnoreCase(newName) && accountRepository.existsNonDeletedByName(newName)) {
+        if (StringUtils.hasText(newName) && !newName.equalsIgnoreCase(oldName) && accountRepository.existsNonDeletedByName(newName)) {
             throw new DuplicateAccountException(newName);
         }
 
@@ -101,6 +108,10 @@ public class AccountService {
 
         Account newAccount = oldAccount.updatedBy(request, hashedPassword);
         accountRepository.save(newAccount);
+
+        if (!newName.equals(oldName)) {
+            writerCacheManager.clearAccountName(accountId);
+        }
     }
 
     public AccountDeleteResponse scheduleAccountDeletion(Long accountId) {

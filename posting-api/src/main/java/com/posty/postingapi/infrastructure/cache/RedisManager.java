@@ -5,43 +5,96 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisManager {
 
     private static final String EMPTY_PLACEHOLDER = "__EMPTY__";
 
-    protected final RedisTemplate<String, String> redisTemplate;
+    protected final RedisTemplate<String, Object> redisTemplate;
 
-    public RedisManager(RedisTemplate<String, String> redisTemplate) {
+    public RedisManager(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    public void saveList(@NotEmpty String key, @NotNull List<String> values) {
+    public void saveList(@NotEmpty String key, @NotNull List<?> values) {
         if (values.isEmpty()) {
             redisTemplate.opsForList().rightPush(key, EMPTY_PLACEHOLDER);
         } else {
-            redisTemplate.opsForList().rightPushAll(key, values);
+            @SuppressWarnings("unchecked")
+            Collection<Object> collection = (Collection<Object>) values;
+            redisTemplate.opsForList().rightPushAll(key, collection);
         }
     }
 
-    public List<String> getList(@NotEmpty String key) {
-        List<String> list = redisTemplate.opsForList().range(key, 0, -1);
-        if (list != null && list.size() == 1 && EMPTY_PLACEHOLDER.equals(list.get(0))) {
-            return List.of();
-        }
-        return list;
+    public <T> List<T> getList(@NotEmpty String key, Class<T> clazz) {
+        List<Object> list = redisTemplate.opsForList().range(key, 0, -1);
+        return list == null || list.isEmpty() || (list.size() == 1 && EMPTY_PLACEHOLDER.equals(list.get(0)))
+                ? List.of()
+                : list.stream()
+                    .map(object -> convertToType(object, clazz))
+                    .toList();
     }
 
-    public void updateList(@NotEmpty String key, @NotNull List<String> values) {
+    private <T> T convertToType(Object obj, Class<T> clazz) {
+        if (clazz.isInstance(obj)) {
+            return clazz.cast(obj);
+        }
+
+        if (clazz == Long.class && obj instanceof Number) {
+            return (T) Long.valueOf(((Number) obj).longValue());
+        }
+
+        if (clazz == Integer.class && obj instanceof Number) {
+            return (T) Integer.valueOf(((Number) obj).intValue());
+        }
+
+        if (clazz == String.class) {
+            return (T) obj.toString();
+        }
+
+        return clazz.cast(obj);
+    }
+
+    public void updateList(@NotEmpty String key, @NotNull List<?> values) {
         redisTemplate.delete(key);
+        saveList(key, values);
+    }
 
-        if (values.isEmpty()) {
-            redisTemplate.opsForList().rightPush(key, EMPTY_PLACEHOLDER);
-        } else {
-            redisTemplate.opsForList().rightPushAll(key, values);
+    public Map<String, Object> getValuesAsMap(@NotEmpty List<String> keys) {
+        List<Object> values = redisTemplate.opsForValue().multiGet(keys);
+        if (values == null || values.isEmpty()) {
+            return Map.of();
         }
+
+        Map<String, Object> result = new HashMap<>();
+        int size = Math.min(keys.size(), values.size());
+        for (int i = 0; i < size; i++) {
+            Object value = values.get(i);
+            if (value != null) {
+                result.put(keys.get(i), value);
+            }
+        }
+        return result;
+    }
+
+    public void saveValues(@NotEmpty Map<String, Object> keyValueMap) {
+        saveValuesWithTtl(keyValueMap, null);
+    }
+
+    // ttl이 null/0/음수면 TTL(유효기간) 없이 저장
+    public void saveValuesWithTtl(@NotEmpty Map<String, Object> keyValueMap, Duration ttl) {
+        if (ttl == null || ttl.isZero() || ttl.isNegative()) {
+            redisTemplate.opsForValue().multiSet(keyValueMap);
+            return;
+        }
+
+        keyValueMap.forEach((key, value) ->
+                redisTemplate.opsForValue().set(key, value, ttl.toMillis(), TimeUnit.MILLISECONDS)
+        );
     }
 
     public void delete(@NotEmpty String key) {
@@ -52,7 +105,10 @@ public class RedisManager {
         return redisTemplate.hasKey(key);
     }
 
-    public String createKey(@NotEmpty String ... keys) {
-        return String.join(":", keys);
+    public String createKey(String prefix, String... suffixes) {
+        if (suffixes.length == 0) {
+            return prefix;
+        }
+        return prefix + ":" + String.join(":", suffixes);
     }
 }

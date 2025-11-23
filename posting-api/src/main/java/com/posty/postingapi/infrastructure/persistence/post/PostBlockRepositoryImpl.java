@@ -24,34 +24,32 @@ public class PostBlockRepositoryImpl implements PostBlockRepositoryCustom {
     }
 
     @Override
-    public List<String> findDistinctWriterNamesBySeriesId(Long seriesId) {
+    public List<Long> findDistinctWriterIdsBySeriesId(Long seriesId) {
         QPostBlock postBlock = QPostBlock.postBlock;
         QPost post = QPost.post;
         QAccount writer = QAccount.account;
 
         return queryFactory
-                .select(writer.name)
+                .select(writer.id)
                 .distinct()
                 .from(postBlock)
                 .join(postBlock.post, post)
                 .join(postBlock.writer, writer)
                 .where(post.series.id.eq(seriesId))
-                .orderBy(writer.name.asc())
                 .fetch();
     }
 
     @Override
-    public List<String> findDistinctWriterNamesByPostId(Long postId) {
+    public List<Long> findDistinctWriterIdsByPostId(Long postId) {
         QPostBlock postBlock = QPostBlock.postBlock;
         QAccount writer = QAccount.account;
 
         return queryFactory
-                .select(writer.name)
+                .select(writer.id)
                 .distinct()
                 .from(postBlock)
                 .join(postBlock.writer, writer)
                 .where(postBlock.post.id.eq(postId))
-                .orderBy(writer.name.asc())
                 .fetch();
     }
 

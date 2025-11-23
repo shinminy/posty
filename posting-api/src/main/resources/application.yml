@@ -6,6 +6,9 @@ api:
   key-header-name: X-API-KEY
   xff-header-name: X-Forwarded-For
 
+time-to-live:
+  account-name-cache: 30d
+
 media:
   file-api-url: ${FILE_API_URL}
   file-api-token: ${FILE_API_TOKEN}

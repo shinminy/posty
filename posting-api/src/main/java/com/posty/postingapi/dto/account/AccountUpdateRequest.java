@@ -14,6 +14,7 @@ import lombok.ToString;
 public class AccountUpdateRequest {
 
     @Size(min = 10, max = 128)
+    @ToString.Exclude
     private String password;
 
     @Size(min = 1, max = 32)
