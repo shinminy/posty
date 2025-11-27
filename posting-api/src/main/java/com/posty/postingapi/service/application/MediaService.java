@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
 @Service
 public class MediaService {
 
-    private final EntityManager entityManager;
-
-    private final PostBlockRepository postBlockRepository;
     private final MediaRepository mediaRepository;
     private final FileApiClient fileApiClient;
     private final Clock clock;
@@ -38,9 +35,6 @@ public class MediaService {
             FileApiClient fileApiClient,
             Clock clock
     ) {
-        this.entityManager = entityManager;
-
-        this.postBlockRepository = postBlockRepository;
         this.mediaRepository = mediaRepository;
         this.fileApiClient = fileApiClient;
         this.clock = clock;
@@ -52,20 +46,16 @@ public class MediaService {
         return prepareMediaForUpload(failedMediaList);
     }
 
+    @Transactional
     public List<Media> prepareMediaForUpload(List<Media> mediaList) {
         if (mediaList.isEmpty()) {
             return mediaList;
         }
 
-        List<Media> waitingList = mediaList.stream()
+        return mediaList.stream()
                 .filter(media -> media.getStatus() == MediaStatus.UPLOAD_FAILED)
-                .map(Media::waitingUpload)
+                .peek(Media::waitingUpload)
                 .toList();
-        if (waitingList.isEmpty()) {
-            return waitingList;
-        }
-
-        return mediaRepository.saveAll(waitingList);
     }
 
     @Transactional
@@ -74,6 +64,7 @@ public class MediaService {
         return deleteOrPrepareMediaForDeletion(failedMediaList);
     }
 
+    @Transactional
     public List<Media> deleteOrPrepareMediaForDeletion(List<Media> mediaList) {
         if (mediaList.isEmpty()) {
             return mediaList;
@@ -92,14 +83,14 @@ public class MediaService {
             mediaRepository.deleteAll(deletableList);
         }
 
-        List<Media> waitingList = partitioned.get(false).stream()
-                .map(Media::waitingDeletion)
-                .toList();
+        List<Media> waitingList = partitioned.get(false);
         if (waitingList.isEmpty()) {
             return waitingList;
         }
 
-        return mediaRepository.saveAll(waitingList);
+        waitingList.forEach(Media::waitingDeletion);
+
+        return waitingList;
     }
 
     public List<Media> findMediaBySeriesId(long seriesId) {
@@ -145,11 +136,11 @@ public class MediaService {
     }
 
     private void successToUploadMedia(Media media, String storedUrl, String storedFilename) {
-        mediaRepository.save(media.uploaded(storedUrl, storedFilename, LocalDateTime.now(clock)));
+        media.uploaded(storedUrl, storedFilename, LocalDateTime.now(clock));
     }
 
     private void failToUploadMedia(Media media) {
-        mediaRepository.save(media.uploadFailed(LocalDateTime.now(clock)));
+        media.uploadFailed(LocalDateTime.now(clock));
     }
 
     @Transactional
@@ -193,6 +184,6 @@ public class MediaService {
     }
 
     private void failToDeleteMedia(Media media) {
-        mediaRepository.save(media.deletionFailed(LocalDateTime.now(clock)));
+        media.deletionFailed(LocalDateTime.now(clock));
     }
 }

@@ -23,9 +23,12 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Series {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false)
@@ -54,19 +57,36 @@ public class Series {
     @OneToMany(mappedBy = "series", cascade = CascadeType.ALL)
     private List<Post> posts = new ArrayList<>();
 
+    public void addManager(Account account) {
+        if (account == null || managers.contains(account)) {
+            return;
+        }
+
+        managers.add(account);
+        account.addManagedSeries(this);
+    }
+
     public void removeManager(Account account) {
+        if (account == null) {
+            return;
+        }
+
         if (managers.remove(account)) {
-            account.getManagedSeries().remove(this);
+            account.removeManagedSeries(this);
         }
     }
 
-    public Series updatedBy(SeriesUpdateRequest request, Set<Account> managers) {
-        return Series.builder()
-                .id(id)
-                .title(StringUtils.hasText(request.getTitle()) ? request.getTitle() : title)
-                .description(StringUtils.hasText(request.getDescription()) ? request.getDescription() : description)
-                .managers(managers)
-                .posts(new ArrayList<>(posts))
-                .build();
+    public void updateInfo(SeriesUpdateRequest request, Set<Account> managers) {
+        if (StringUtils.hasText(request.getTitle())) {
+            title = request.getTitle();
+        }
+
+        if (StringUtils.hasText(request.getDescription())) {
+            description = request.getDescription();
+        }
+
+        if (managers != null) {
+            this.managers = managers;
+        }
     }
 }

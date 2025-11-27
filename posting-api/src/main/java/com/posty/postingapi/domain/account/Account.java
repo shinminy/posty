@@ -28,14 +28,14 @@ public class Account {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
     @ToString.Exclude
     private String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     private String mobileNumber;
@@ -62,63 +62,54 @@ public class Account {
 
     private LocalDateTime deletedAt;
 
-    public Account updatedBy(AccountUpdateRequest request, String hashedPassword) {
-        return Account.builder()
-                .id(id)
-                .email(email)
-                .password(StringUtils.hasText(hashedPassword) ? hashedPassword : password)
-                .name(StringUtils.hasText(request.getName()) ? request.getName() : name)
-                .mobileNumber(StringUtils.hasText(request.getMobileNumber()) ? request.getMobileNumber() : mobileNumber)
-                .managedSeries(new ArrayList<>(managedSeries))
-                .status(status)
-                .lastLoginAt(lastLoginAt)
-                .lockedAt(lockedAt)
-                .deletedAt(deletedAt)
-                .build();
+    public void updateProfile(AccountUpdateRequest request, String hashedPassword) {
+        if (StringUtils.hasText(hashedPassword)) {
+            password = hashedPassword;
+        }
+
+        if (StringUtils.hasText(request.getName())) {
+            name = request.getName();
+        }
+
+        if (StringUtils.hasText(request.getMobileNumber())) {
+            mobileNumber = request.getMobileNumber();
+        }
     }
 
-    public Account waitingForDeleting() {
-        return Account.builder()
-                .id(id)
-                .email(email)
-                .password(password)
-                .name(name)
-                .mobileNumber(mobileNumber)
-                .managedSeries(new ArrayList<>(managedSeries))
-                .status(AccountStatus.WAITING_FOR_DELETION)
-                .lastLoginAt(lastLoginAt)
-                .lockedAt(lockedAt)
-                .deletedAt(deletedAt)
-                .build();
+    public void addManagedSeries(Series series) {
+        if (series == null || managedSeries.contains(series)) {
+            return;
+        }
+
+        managedSeries.add(series);
+        series.addManager(this);
     }
 
-    public Account deleted(LocalDateTime deletedAt) {
-        return Account.builder()
-                .id(id)
-                .email(email)
-                .password(password)
-                .name(name)
-                .mobileNumber(mobileNumber)
-                .managedSeries(new ArrayList<>(managedSeries))
-                .status(AccountStatus.DELETED)
-                .lastLoginAt(lastLoginAt)
-                .lockedAt(lockedAt)
-                .deletedAt(deletedAt == null ? this.deletedAt : deletedAt)
-                .build();
+    public void removeManagedSeries(Series series) {
+        if (series == null) {
+            return;
+        }
+
+        if (managedSeries.remove(series)) {
+            series.removeManager(this);
+        }
     }
 
-    public Account locked(LocalDateTime lockedAt) {
-        return Account.builder()
-                .id(id)
-                .email(email)
-                .password(password)
-                .name(name)
-                .mobileNumber(mobileNumber)
-                .managedSeries(new ArrayList<>(managedSeries))
-                .status(AccountStatus.LOCKED)
-                .lastLoginAt(lastLoginAt)
-                .lockedAt(lockedAt == null ? this.lockedAt : lockedAt)
-                .deletedAt(deletedAt)
-                .build();
+    public void markWaitingForDeletion() {
+        status = AccountStatus.WAITING_FOR_DELETION;
+    }
+
+    public void markDeleted(LocalDateTime deletedAt) {
+        status = AccountStatus.DELETED;
+        this.deletedAt = deletedAt;
+    }
+
+    public void markLocked(LocalDateTime lockedAt) {
+        status = AccountStatus.LOCKED;
+        this.lockedAt = lockedAt;
+    }
+
+    public void updateLastLogin(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 }

@@ -89,14 +89,14 @@ public class SeriesService {
     }
 
     public void updateSeries(Long seriesId, SeriesUpdateRequest request) {
-        Series oldSeries = findSeriesById(seriesId);
+        Series series = findSeriesById(seriesId);
 
         request.normalize();
 
         List<Long> managerIds = request.getAccountIds();
         Set<Account> managers;
         if (managerIds == null) {
-            managers = oldSeries.getManagers();
+            managers = series.getManagers();
         } else {
             List<Account> managerList = accountRepository.findNonDeletedByIdIn(managerIds);
             if (managerList.isEmpty()) {
@@ -106,8 +106,8 @@ public class SeriesService {
             managers = new HashSet<>(managerList);
         }
 
-        Series newSeries = oldSeries.updatedBy(request, managers);
-        seriesRepository.save(newSeries);
+        series.updateInfo(request, managers);
+        seriesRepository.save(series);
 
         writerCacheManager.clearWritersOfSeries(seriesId);
     }

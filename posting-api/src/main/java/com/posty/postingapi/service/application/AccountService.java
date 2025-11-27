@@ -89,15 +89,15 @@ public class AccountService {
     }
 
     public void updateAccount(Long accountId, AccountUpdateRequest request) {
-        Account oldAccount = findAccountById(accountId);
+        Account account = findAccountById(accountId);
 
-        if (oldAccount.getStatus() == AccountStatus.WAITING_FOR_DELETION) {
+        if (account.getStatus() == AccountStatus.WAITING_FOR_DELETION) {
             throw new AccountUpdateNotAllowedException("This account is scheduled for deletion.");
         }
 
         request.normalize();
 
-        String oldName = oldAccount.getName();
+        String oldName = account.getName();
         String newName = request.getName();
         if (StringUtils.hasText(newName) && !newName.equalsIgnoreCase(oldName) && accountRepository.existsNonDeletedByName(newName)) {
             throw new DuplicateAccountException(newName);
@@ -106,8 +106,8 @@ public class AccountService {
         String newPassword = request.getPassword();
         String hashedPassword = StringUtils.hasText(newPassword) ? passwordEncoder.encode(newPassword) : null;
 
-        Account newAccount = oldAccount.updatedBy(request, hashedPassword);
-        accountRepository.save(newAccount);
+        account.updateProfile(request, hashedPassword);
+        accountRepository.save(account);
 
         if (!newName.equals(oldName)) {
             writerCacheManager.clearAccountName(accountId);
@@ -135,8 +135,8 @@ public class AccountService {
                 .build();
         AccountDeletionSchedule saved = accountDeletionScheduleRepository.save(schedule);
 
-        Account accountToBeUpdated = account.waitingForDeleting();
-        accountRepository.save(accountToBeUpdated);
+        account.markWaitingForDeletion();
+        accountRepository.save(account);
 
         return AccountMapper.toAccountDeleteResponse(saved);
     }
