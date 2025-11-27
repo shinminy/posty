@@ -13,5 +13,8 @@ create table account (
     deleted_at datetime
 );
 
+# drop index idx_account_email_status on account;
 create index idx_account_email_status on account(email, status);
+
+# drop index idx_account_name_status on account;
 create index idx_account_name_status on account(name, status);
