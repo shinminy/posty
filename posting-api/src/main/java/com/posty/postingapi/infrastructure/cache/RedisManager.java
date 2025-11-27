@@ -4,11 +4,13 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Validated
 @Component
 public class RedisManager {
 
@@ -39,6 +41,7 @@ public class RedisManager {
                     .toList();
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T convertToType(Object obj, Class<T> clazz) {
         if (clazz.isInstance(obj)) {
             return clazz.cast(obj);
