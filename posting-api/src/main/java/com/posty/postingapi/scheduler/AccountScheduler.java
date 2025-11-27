@@ -18,7 +18,8 @@ public class AccountScheduler {
     @Scheduled(cron = "${scheduler.account.deletion.cron}")
     public void runAccountDeletionSchedules() {
         log.info("Account deletion scheduler started...");
-        accountDeletionService.deleteAccounts();
+        accountDeletionService.markAccountsDeletionInProgress();
+        accountDeletionService.processAccountsDeletion();
         log.info("Account deletion scheduler ended!");
     }
 }

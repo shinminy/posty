@@ -40,25 +40,15 @@ public class AccountDeletionSchedule {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public AccountDeletionSchedule withStatus(ScheduleStatus status) {
-        return AccountDeletionSchedule.builder()
-                .id(id)
-                .account(account)
-                .status(status)
-                .scheduledAt(scheduledAt)
-                .createdAt(createdAt)
-                .updatedAt(updatedAt)
-                .build();
+    public void markInProgress() {
+        status = ScheduleStatus.IN_PROGRESS;
     }
 
-    public AccountDeletionSchedule completedWith(Account account) {
-        return AccountDeletionSchedule.builder()
-                .id(id)
-                .account(account == null ? this.account : account)
-                .status(ScheduleStatus.COMPLETED)
-                .scheduledAt(scheduledAt)
-                .createdAt(createdAt)
-                .updatedAt(updatedAt)
-                .build();
+    public void markCompleted(Account account) {
+        if (account != null) {
+            this.account = account;
+        }
+
+        status = ScheduleStatus.COMPLETED;
     }
 }

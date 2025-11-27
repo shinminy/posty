@@ -3,7 +3,6 @@ package com.posty.postingapi.service.scheduler;
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountDeletionSchedule;
 import com.posty.postingapi.domain.account.AccountDeletionScheduleRepository;
-import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.posty.postingapi.domain.series.Series;
 import lombok.extern.slf4j.Slf4j;
@@ -22,53 +21,56 @@ public class AccountDeletionService {
 
 
     private final AccountDeletionScheduleRepository accountDeletionScheduleRepository;
-    private final AccountRepository accountRepository;
 
     private final Clock clock;
 
     public AccountDeletionService(
             AccountDeletionScheduleRepository accountDeletionScheduleRepository,
-            AccountRepository accountRepository,
             Clock clock
     ) {
         this.accountDeletionScheduleRepository = accountDeletionScheduleRepository;
-        this.accountRepository = accountRepository;
 
         this.clock = clock;
     }
 
     @Transactional
-    public void deleteAccounts() {
+    public void markAccountsDeletionInProgress() {
         LocalDateTime now = LocalDateTime.now(clock);
 
-        List<AccountDeletionSchedule> pendingSchedules = accountDeletionScheduleRepository.findScheduledBefore(now);
-
-        if (pendingSchedules.isEmpty()) {
+        List<AccountDeletionSchedule> schedules = accountDeletionScheduleRepository.findScheduledBefore(now);
+        if (schedules.isEmpty()) {
             log.info("No accounts for deletion.");
             return;
         }
 
-        List<AccountDeletionSchedule> inProgressSchedules = pendingSchedules.stream()
-                .map(schedule -> schedule.withStatus(ScheduleStatus.IN_PROGRESS))
-                .toList();
+        schedules.forEach(AccountDeletionSchedule::markInProgress);
 
-        accountDeletionScheduleRepository.saveAll(inProgressSchedules);
+        log.info("{} account deletion schedules marked as IN_PROGRESS. IDs: {}", schedules.size(),
+                schedules.stream().map(AccountDeletionSchedule::getId).map(String::valueOf).collect(Collectors.joining(",")));
+    }
 
-        List<AccountDeletionSchedule> completedSchedules = inProgressSchedules.stream()
-                .map(schedule -> {
-                    Account account = schedule.getAccount();
-                    List<Series> copiedSeries = new ArrayList<>(account.getManagedSeries());
-                    copiedSeries.forEach(series -> series.removeManager(account));
-                    return schedule.completedWith(account.deleted(now));
-                })
-                .toList();
+    @Transactional
+    public void processAccountsDeletion() {
+        LocalDateTime now = LocalDateTime.now(clock);
 
-        List<Account> accounts = completedSchedules.stream()
-                .map(AccountDeletionSchedule::getAccount)
-                .toList();
+        List<AccountDeletionSchedule> schedules = accountDeletionScheduleRepository.findAllByStatus(ScheduleStatus.IN_PROGRESS);
+        if (schedules.isEmpty()) {
+            log.info("No accounts for deletion (IN_PROGRESS).");
+            return;
+        }
 
-        accountRepository.saveAll(accounts);
-        accountDeletionScheduleRepository.saveAll(completedSchedules);
+        List<Account> accounts = new ArrayList<>();
+        schedules.forEach(schedule -> {
+            Account account = schedule.getAccount();
+
+            List<Series> copiedSeries = new ArrayList<>(account.getManagedSeries());
+            copiedSeries.forEach(account::removeManagedSeries);
+
+            account.markDeleted(now);
+            schedule.markCompleted(account);
+
+            accounts.add(account);
+        });
 
         log.info("{} accounts soft-deleted. IDs: {}", accounts.size(),
                 accounts.stream().map(Account::getId).map(String::valueOf).collect(Collectors.joining(",")));
