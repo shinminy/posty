@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AccountRepositoryCustom {
+
+    boolean existsNonDeletedById(Long id);
     boolean existsNonDeletedByEmail(String email);
     boolean existsNonDeletedByName(String name);
     Optional<Account> findNonDeletedById(Long id);

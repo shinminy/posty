@@ -3,6 +3,7 @@ package com.posty.postingapi.service.application;
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.domain.comment.CommentRepository;
+import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.domain.series.Series;
@@ -17,6 +18,7 @@ import com.posty.postingapi.mapper.SeriesMapper;
 import com.posty.postingapi.mq.MediaEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -128,5 +130,14 @@ public class SeriesService {
 
         List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
         waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);
+    }
+
+    public Page<SeriesSummary> getSeriesByManager(Long accountId, Pageable pageable) {
+        if (!accountRepository.existsNonDeletedById(accountId)) {
+            throw new ResourceNotFoundException("Account", accountId);
+        }
+
+        Page<Series> series = seriesRepository.findByManagersId(accountId, pageable);
+        return series.map(SeriesMapper::toSeriesSummary);
     }
 }

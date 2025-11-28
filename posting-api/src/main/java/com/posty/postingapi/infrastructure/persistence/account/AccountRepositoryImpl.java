@@ -21,6 +21,20 @@ public class AccountRepositoryImpl implements AccountRepositoryCustom {
     }
 
     @Override
+    public boolean existsNonDeletedById(Long id) {
+        QAccount qAccount = QAccount.account;
+
+        return queryFactory
+                .selectOne()
+                .from(qAccount)
+                .where(
+                        qAccount.id.eq(id),
+                        qAccount.status.ne(AccountStatus.DELETED)
+                )
+                .fetchFirst() != null;
+    }
+
+    @Override
     public boolean existsNonDeletedByEmail(String email) {
         QAccount qAccount = QAccount.account;
 

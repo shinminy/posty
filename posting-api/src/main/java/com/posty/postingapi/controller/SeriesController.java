@@ -3,6 +3,7 @@ package com.posty.postingapi.controller;
 import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.series.SeriesCreateRequest;
 import com.posty.postingapi.dto.series.SeriesDetailResponse;
+import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.SeriesService;
@@ -14,6 +15,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -72,5 +78,15 @@ public class SeriesController {
     public ResponseEntity<Void> deleteSeries(@PathVariable Long seriesId) {
         seriesService.deleteSeries(seriesId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @Operation(summary = "계정이 관리하는 시리즈 목록 조회", description = "해당 계정이 관리 중인 시리즈들을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @GetMapping("/series/manager/{accountId}")
+    public Page<SeriesSummary> getSeriesByManager(
+            @PathVariable Long accountId,
+            @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return seriesService.getSeriesByManager(accountId, pageable);
     }
 }

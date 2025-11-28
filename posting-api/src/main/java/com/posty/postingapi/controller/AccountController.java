@@ -5,11 +5,9 @@ import com.posty.postingapi.dto.account.AccountCreateRequest;
 import com.posty.postingapi.dto.account.AccountDeleteResponse;
 import com.posty.postingapi.dto.account.AccountDetailResponse;
 import com.posty.postingapi.dto.account.AccountUpdateRequest;
-import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @Tag(name = "계정 관리 API", description = "계정 관련 CRUD API")
 @CommonErrorResponses
@@ -69,12 +66,5 @@ public class AccountController {
     @DeleteMapping("/{accountId}")
     public AccountDeleteResponse deleteAccount(@PathVariable Long accountId) {
         return accountService.scheduleAccountDeletion(accountId);
-    }
-
-    @Operation(summary = "관리하는 시리즈 조회", description = "해당 계정이 관리 중인 시리즈 정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(array = @ArraySchema(schema = @Schema(implementation = SeriesSummary.class))))
-    @GetMapping("/{accountId}/managed-series")
-    public List<SeriesSummary> getManagedSeriesList(@PathVariable Long accountId) {
-        return accountService.getManagedSeriesList(accountId);
     }
 }
