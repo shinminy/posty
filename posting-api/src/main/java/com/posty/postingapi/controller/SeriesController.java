@@ -8,11 +8,9 @@ import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.SeriesService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,10 +42,9 @@ public class SeriesController {
     @GetMapping("/{seriesId}")
     public SeriesDetailResponse getSeries(
             @PathVariable Long seriesId,
-            @Parameter(description = "시리즈 내 포스트 목록의 페이지 번호") @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
-            @Parameter(description = "시리즈 내 포스트 목록의 한 페이지 크기") @RequestParam(required = false, defaultValue = "10") @Min(1) int size
+            @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return seriesService.getSeriesDetail(seriesId, page, size);
+        return seriesService.getSeriesDetail(seriesId, pageable);
     }
     
     @Operation(summary = "시리즈 생성", description = "시리즈를 생성합니다.")

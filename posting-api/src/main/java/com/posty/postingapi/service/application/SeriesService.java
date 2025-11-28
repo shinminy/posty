@@ -16,9 +16,8 @@ import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mapper.SeriesMapper;
 import com.posty.postingapi.mq.MediaEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import com.posty.postingapi.properties.PaginationConfig;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -39,6 +38,9 @@ public class SeriesService {
     private final MediaService mediaService;
     private final MediaEventPublisher mediaEventPublisher;
 
+    private final int defaultPage;
+    private final int defaultPageSize;
+
     public SeriesService(
             SeriesRepository seriesRepository,
             PostRepository postRepository,
@@ -46,7 +48,8 @@ public class SeriesService {
             CommentRepository commentRepository,
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
-            MediaEventPublisher mediaEventPublisher
+            MediaEventPublisher mediaEventPublisher,
+            PaginationConfig paginationConfig
     ) {
         this.seriesRepository = seriesRepository;
         this.postRepository = postRepository;
@@ -57,6 +60,9 @@ public class SeriesService {
 
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
+
+        defaultPage = paginationConfig.getDefaultPage();
+        defaultPageSize = paginationConfig.getDefaultSize();
     }
 
     private Series findSeriesById(Long seriesId) {
@@ -64,17 +70,13 @@ public class SeriesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Series", seriesId));
     }
 
-    public SeriesDetailResponse getSeriesDetail(Long seriesId, int page, int size) {
+    public SeriesDetailResponse getSeriesDetail(Long seriesId, Pageable pageable) {
         Series series = findSeriesById(seriesId);
 
         List<String> writers = writerCacheManager.loadWritersOfSeries(seriesId);
 
-        PageRequest pageable = PageRequest.of(page-1, size);
         Page<Post> postData = postRepository.findAllBySeriesId(seriesId, pageable);
-
-        List<PostSummary> posts = postData.stream()
-                .map(PostMapper::toPostSummary)
-                .toList();
+        Page<PostSummary> posts = postData.map(PostMapper::toPostSummary);
 
         return SeriesMapper.toSeriesDetailResponse(series, writers, posts);
     }
@@ -91,7 +93,13 @@ public class SeriesService {
         Series series = SeriesMapper.toEntity(request, new HashSet(managers));
         Series saved = seriesRepository.save(series);
 
-        return SeriesMapper.toSeriesDetailResponse(saved, new ArrayList<>(), new ArrayList<>());
+        Page<PostSummary> emptyPosts = new PageImpl<>(
+                new ArrayList<>(),
+                PageRequest.of(defaultPage, defaultPageSize, Sort.by(Sort.Direction.DESC, "id")),
+                0
+        );
+
+        return SeriesMapper.toSeriesDetailResponse(saved, new ArrayList<>(), emptyPosts);
     }
 
     public void updateSeries(Long seriesId, SeriesUpdateRequest request) {
