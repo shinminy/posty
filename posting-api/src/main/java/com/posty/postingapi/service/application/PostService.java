@@ -83,7 +83,6 @@ public class PostService {
 
         PageRequest pageable = PageRequest.of(page, size, PostBlock.SORT);
         Page<PostBlock> blockData = postBlockRepository.findAllByPostId(postId, pageable);
-
         Page<PostBlockResponse> blocks = blockData.map(PostBlockMapper::toPostBlockResponse);
 
         return PostMapper.toPostDetailResponse(post, writers, blocks);
@@ -110,16 +109,16 @@ public class PostService {
 
         List<String> sortedWriters = writers.stream().distinct().sorted().toList();
 
-        List<PostBlock> blockEntities = saved.getBlocks();
-        List<PostBlockResponse> blockResponses = blockEntities.stream()
+        List<PostBlock> blockData = saved.getBlocks();
+        List<PostBlockResponse> blockResponseList = blockData.stream()
                 .sorted(Comparator.comparing(PostBlock::getOrderNo))
                 .limit(defaultPageSize)
                 .map(PostBlockMapper::toPostBlockResponse)
                 .toList();
         Page<PostBlockResponse> blocks = new PageImpl<>(
-                blockResponses,
+                blockResponseList,
                 PageRequest.of(defaultPage, defaultPageSize, PostBlock.SORT),
-                blockEntities.size()
+                blockData.size()
         );
 
         return PostMapper.toPostDetailResponse(saved, sortedWriters, blocks);
