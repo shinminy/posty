@@ -6,12 +6,13 @@ import com.posty.postingapi.dto.post.PostBlockResponse;
 import com.posty.postingapi.dto.post.PostCreateRequest;
 import com.posty.postingapi.dto.post.PostDetailResponse;
 import com.posty.postingapi.dto.post.PostSummary;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public class PostMapper {
 
-    public static PostDetailResponse toPostDetailResponse(Post entity, List<String> writers, List<PostBlockResponse> blocks) {
+    public static PostDetailResponse toPostDetailResponse(Post entity, List<String> writers, Page<PostBlockResponse> blocks) {
         return new PostDetailResponse(
                 entity.getId(),
                 entity.getTitle(),
