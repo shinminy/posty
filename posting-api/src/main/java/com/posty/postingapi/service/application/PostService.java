@@ -14,6 +14,7 @@ import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mq.MediaEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -227,5 +228,14 @@ public class PostService {
         writerCacheManager.clearWritersOfPosts(postId, post.getSeries().getId());
 
         requestToDeleteMediaList(mediaList);
+    }
+
+    public Page<PostSummary> getPostsByWriter(Long accountId, Pageable pageable) {
+        if (!accountRepository.existsById(accountId)) {
+            throw new ResourceNotFoundException("Account", accountId);
+        }
+
+        Page<Post> posts = postRepository.findAllByWriterId(accountId, pageable);
+        return posts.map(PostMapper::toPostSummary);
     }
 }
