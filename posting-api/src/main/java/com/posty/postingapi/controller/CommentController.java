@@ -12,6 +12,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -35,18 +40,18 @@ public class CommentController {
 
     @Operation(summary = "댓글 상세정보 조회", description = "댓글의 상세정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = CommentDetailResponse.class)))
-    @GetMapping("/{commentId}")
+    @GetMapping("/comment/{commentId}")
     public CommentDetailResponse getComment(@PathVariable Long commentId) {
         return commentService.getCommentDetail(commentId);
     }
 
     @Operation(summary = "댓글 생성", description = "댓글을 생성합니다.")
     @ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(implementation = CommentDetailResponse.class)))
-    @PostMapping
+    @PostMapping("/comment")
     public ResponseEntity<CommentDetailResponse> createComment(@Valid @RequestBody CommentCreateRequest request) {
         CommentDetailResponse body = commentService.createComment(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
+                .path("/comment/{id}")
                 .buildAndExpand(body.getId())
                 .toUri();
         return ResponseEntity.created(location).body(body);
@@ -54,7 +59,7 @@ public class CommentController {
 
     @Operation(summary = "댓글 수정", description = "댓글을 수정합니다.")
     @ApiResponse(responseCode = "204", description = "No Content")
-    @PutMapping("/{commentId}")
+    @PutMapping("/comment/{commentId}")
     public ResponseEntity<Void> updateComment(@PathVariable Long commentId, @Valid @RequestBody CommentUpdateRequest request) {
         commentService.updateComment(commentId, request);
         return ResponseEntity.noContent().build();
@@ -62,9 +67,19 @@ public class CommentController {
 
     @Operation(summary = "댓글 삭제", description = "댓글 삭제를 요청합니다.")
     @ApiResponse(responseCode = "204", description = "No Content")
-    @DeleteMapping("/{commentId}")
+    @DeleteMapping("/comment/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
         commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "포스트의 댓글 목록 조회", description = "해당 포스트의 댓글 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @GetMapping("/comments/posts/{postId}")
+    public Page<CommentDetailResponse> getCommentsByPost(
+            @PathVariable Long postId,
+            @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return commentService.getCommentsByPost(postId, pageable);
     }
 }
