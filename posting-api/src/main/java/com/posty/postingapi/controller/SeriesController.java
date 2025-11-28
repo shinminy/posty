@@ -3,17 +3,19 @@ package com.posty.postingapi.controller;
 import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.series.SeriesCreateRequest;
 import com.posty.postingapi.dto.series.SeriesDetailResponse;
+import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.SeriesService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -36,18 +38,17 @@ public class SeriesController {
     }
 
     @Operation(summary = "시리즈 상세정보 조회", description = "포스트 목록을 포함한 시리즈의 상세정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SeriesDetailResponse.class)))
+    @ApiResponse(responseCode = "200", description = "OK")
     @GetMapping("/{seriesId}")
     public SeriesDetailResponse getSeries(
             @PathVariable Long seriesId,
-            @Parameter(description = "시리즈 내 포스트 목록의 페이지 번호") @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
-            @Parameter(description = "시리즈 내 포스트 목록의 한 페이지 크기") @RequestParam(required = false, defaultValue = "10") @Min(1) int size
+            @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return seriesService.getSeriesDetail(seriesId, page, size);
+        return seriesService.getSeriesDetail(seriesId, pageable);
     }
     
     @Operation(summary = "시리즈 생성", description = "시리즈를 생성합니다.")
-    @ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(implementation = SeriesDetailResponse.class)))
+    @ApiResponse(responseCode = "201", description = "Created")
     @PostMapping
     public ResponseEntity<SeriesDetailResponse> createSeries(@Valid @RequestBody SeriesCreateRequest request) {
         SeriesDetailResponse body = seriesService.createSeries(request);
@@ -72,5 +73,16 @@ public class SeriesController {
     public ResponseEntity<Void> deleteSeries(@PathVariable Long seriesId) {
         seriesService.deleteSeries(seriesId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @Operation(summary = "계정이 관리하는 시리즈 목록 조회", description = "해당 계정이 관리 중인 시리즈들을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @GetMapping("/manager/{accountId}")
+    public Page<SeriesSummary> getSeriesByManager(
+            @PathVariable Long accountId,
+            @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return seriesService.getSeriesByManager(accountId, pageable);
     }
 }

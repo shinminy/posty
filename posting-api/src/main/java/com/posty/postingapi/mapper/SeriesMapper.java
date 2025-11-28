@@ -7,13 +7,14 @@ import com.posty.postingapi.dto.post.PostSummary;
 import com.posty.postingapi.dto.series.SeriesCreateRequest;
 import com.posty.postingapi.dto.series.SeriesDetailResponse;
 import com.posty.postingapi.dto.series.SeriesSummary;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Set;
 
 public class SeriesMapper {
 
-    public static SeriesDetailResponse toSeriesDetailResponse(Series entity, List<String> writers, List<PostSummary> posts) {
+    public static SeriesDetailResponse toSeriesDetailResponse(Series entity, List<String> writers, Page<PostSummary> posts) {
         List<AccountSummary> managers = entity.getManagers().stream()
                 .map(AccountMapper::toAccountSummary)
                 .toList();

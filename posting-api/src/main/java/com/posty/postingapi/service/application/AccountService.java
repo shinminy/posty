@@ -8,13 +8,11 @@ import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.properties.SchedulerConfig;
 import com.posty.postingapi.domain.account.*;
 import com.posty.postingapi.domain.common.ScheduleStatus;
-import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.error.AccountUpdateNotAllowedException;
 import com.posty.postingapi.error.DuplicateAccountDeletionException;
 import com.posty.postingapi.error.DuplicateAccountException;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.AccountMapper;
-import com.posty.postingapi.mapper.SeriesMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,9 +20,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -139,13 +135,5 @@ public class AccountService {
         accountRepository.save(account);
 
         return AccountMapper.toAccountDeleteResponse(saved);
-    }
-
-    public List<SeriesSummary> getManagedSeriesList(Long accountId) {
-        Account account = findAccountById(accountId);
-
-        return account.getManagedSeries().stream()
-                .map(SeriesMapper::toSeriesSummary)
-                .collect(Collectors.toList());
     }
 }

@@ -47,6 +47,10 @@ public class WriterCacheManager {
     }
 
     private List<String> loadAccountNames(List<Long> accountIds) {
+        if (accountIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Map<Long, String> idToKey = accountIds.stream()
                 .collect(Collectors.toMap(
                         Function.identity(),
@@ -105,7 +109,9 @@ public class WriterCacheManager {
             writerIds = redisManager.getList(redisKey, Long.class);
         } else {
             writerIds = postBlockRepository.findDistinctWriterIdsBySeriesId(seriesId);
-            redisManager.saveList(redisKey, writerIds);
+            if (!writerIds.isEmpty()) {
+                redisManager.saveList(redisKey, writerIds);
+            }
         }
 
         return writerIds;
@@ -124,7 +130,9 @@ public class WriterCacheManager {
             writerIds = redisManager.getList(redisKey, Long.class);
         } else {
             writerIds = postBlockRepository.findDistinctWriterIdsByPostId(postId);
-            redisManager.saveList(redisKey, writerIds);
+            if (!writerIds.isEmpty()) {
+                redisManager.saveList(redisKey, writerIds);
+            }
         }
 
         return writerIds;

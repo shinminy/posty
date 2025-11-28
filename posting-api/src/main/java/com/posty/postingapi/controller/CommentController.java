@@ -27,7 +27,6 @@ import java.net.URI;
 @ResponseLogging
 @Validated
 @RestController
-@RequestMapping("/comment")
 public class CommentController {
 
     private final CommentService commentService;

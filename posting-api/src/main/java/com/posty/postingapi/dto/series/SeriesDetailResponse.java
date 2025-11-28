@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -28,5 +29,5 @@ public class SeriesDetailResponse {
     @Schema(description = "해당 시리즈 내 포스트 작성에 참여한 작성자 목록")
     private List<String> writers;
 
-    private List<PostSummary> posts;
+    private Page<PostSummary> posts;
 }
