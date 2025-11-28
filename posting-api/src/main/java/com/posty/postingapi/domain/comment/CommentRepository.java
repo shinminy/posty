@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface CommentRepository extends JpaRepository<Comment, Long>, CommentRepositoryCustom {
 
     Page<Comment> findAllByPostId(Long postId, Pageable pageable);
+    Page<Comment> findAllByWriterId(Long accountId, Pageable pageable);
 
     @Transactional
     long deleteAllByPostId(Long postId);
