@@ -15,6 +15,8 @@ import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.AccountMapper;
 import com.posty.postingapi.mapper.CommentMapper;
 import com.posty.postingapi.mapper.PostMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -81,5 +83,20 @@ public class CommentService {
     public void deleteComment(Long commentId) {
         Comment comment = findCommentById(commentId);
         commentRepository.delete(comment);
+    }
+
+    public Page<CommentDetailResponse> getCommentsByPost(Long postId, Pageable pageable) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
+
+        Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
+
+        PostSummary postSummary = PostMapper.toPostSummary(post);
+
+        return comments.map(comment -> CommentMapper.toCommentDetailResponse(
+                comment,
+                postSummary,
+                AccountMapper.toAccountSummary(comment.getWriter())
+        ));
     }
 }
