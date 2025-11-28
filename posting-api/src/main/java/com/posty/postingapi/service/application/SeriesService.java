@@ -76,7 +76,7 @@ public class SeriesService {
     public SeriesDetailResponse createSeries(SeriesCreateRequest request) {
         request.normalize();
 
-        List<Long> managerIds = request.getAccountIds();
+        List<Long> managerIds = request.getManagerIds();
         List<Account> managers = accountRepository.findNonDeletedByIdIn(managerIds);
         if (managers.isEmpty()) {
             throw new ResourceNotFoundException("Account", managerIds);
@@ -93,7 +93,7 @@ public class SeriesService {
 
         request.normalize();
 
-        List<Long> managerIds = request.getAccountIds();
+        List<Long> managerIds = request.getManagerIds();
         Set<Account> managers;
         if (managerIds == null) {
             managers = series.getManagers();

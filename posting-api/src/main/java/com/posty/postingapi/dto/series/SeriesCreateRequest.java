@@ -1,5 +1,6 @@
 package com.posty.postingapi.dto.series;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -25,8 +26,9 @@ public class SeriesCreateRequest {
     @Size(max = 1000)
     private String description;
 
+    @Schema(description = "계정(Account) ID")
     @NotEmpty
-    private List<Long> accountIds;
+    private List<Long> managerIds;
 
     public void normalize() {
         if (title != null) {
@@ -37,8 +39,8 @@ public class SeriesCreateRequest {
             description = description.trim();
         }
 
-        if (accountIds != null) {
-            accountIds = new ArrayList<>(new HashSet<>(accountIds));
+        if (managerIds != null) {
+            managerIds = new ArrayList<>(new HashSet<>(managerIds));
         }
     }
 }

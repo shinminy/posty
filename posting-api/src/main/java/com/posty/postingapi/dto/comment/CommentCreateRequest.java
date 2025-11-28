@@ -1,8 +1,9 @@
-package com.posty.postingapi.dto.post;
+package com.posty.postingapi.dto.comment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,23 +13,22 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class PostBlockRequest {
+public class CommentCreateRequest {
 
     @NotNull
-    @Min(1)
-    private Integer orderNo;
+    private Long postId;
+
+    @NotEmpty
+    @Size(min = 1, max = 1000)
+    private String content;
 
     @Schema(description = "계정(Account) ID")
     @NotNull
     private Long writerId;
 
-    @NotNull
-    @Schema(oneOf = { TextContentRequest.class, MediaContentRequest.class })
-    private ContentRequest content;
-
     public void normalize() {
         if (content != null) {
-            content.normalize();
+            content = content.trim();
         }
     }
 }
