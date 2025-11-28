@@ -18,6 +18,7 @@ public class PostBlockRequest {
     @Min(1)
     private Integer orderNo;
 
+    @Schema(description = "계정(Account) ID")
     @NotNull
     private Long writerId;
 
