@@ -250,7 +250,7 @@ public class PostService {
     }
 
     public Page<PostSummary> getPostsByWriter(Long accountId, Pageable pageable) {
-        if (!accountRepository.existsById(accountId)) {
+        if (!accountRepository.existsNonDeletedById(accountId)) {
             throw new ResourceNotFoundException("Account", accountId);
         }
 
