@@ -9,8 +9,6 @@ import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,7 +39,7 @@ public class PostController {
     }
 
     @Operation(summary = "포스트 상세정보 조회", description = "내용 일부를 포함한 포스트 상세정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PostDetailResponse.class)))
+    @ApiResponse(responseCode = "200", description = "OK")
     @GetMapping("/post/{postId}")
     public PostDetailResponse getPost(
             @PathVariable Long postId,
@@ -52,7 +50,7 @@ public class PostController {
     }
 
     @Operation(summary = "포스트 생성", description = "포스트를 생성합니다.")
-    @ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(implementation = PostDetailResponse.class)))
+    @ApiResponse(responseCode = "201", description = "Created")
     @PostMapping("/post")
     public ResponseEntity<PostDetailResponse> createPost(@Valid @RequestBody PostCreateRequest request) {
         PostDetailResponse body = postService.createPost(request);
