@@ -78,7 +78,7 @@ public class SeriesController {
 
     @Operation(summary = "계정이 관리하는 시리즈 목록 조회", description = "해당 계정이 관리 중인 시리즈들을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
-    @GetMapping("/series/manager/{accountId}")
+    @GetMapping("/manager/{accountId}")
     public Page<SeriesSummary> getSeriesByManager(
             @PathVariable Long accountId,
             @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
