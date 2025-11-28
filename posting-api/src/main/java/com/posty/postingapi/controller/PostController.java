@@ -43,7 +43,7 @@ public class PostController {
     @GetMapping("/post/{postId}")
     public PostDetailResponse getPost(
             @PathVariable Long postId,
-            @Parameter(description = "포스트 내 블록 목록의 페이지 번호") @RequestParam(required = false, defaultValue = "1") @Min(1) int page,
+            @Parameter(description = "포스트 내 블록 목록의 페이지") @RequestParam(required = false, defaultValue = "0") @Min(1) int page,
             @Parameter(description = "포스트 내 블록 목록의 한 페이지 크기") @RequestParam(required = false, defaultValue = "10") @Min(1) int size
     ) {
         return postService.getPostDetail(postId, page, size);

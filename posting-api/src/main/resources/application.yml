@@ -9,6 +9,10 @@ api:
 time-to-live:
   account-name-cache: 30d
 
+pagination:
+  default-page: 0
+  default-size: 10
+
 media:
   file-api-url: ${FILE_API_URL}
   file-api-token: ${FILE_API_TOKEN}

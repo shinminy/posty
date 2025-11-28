@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,8 @@ import java.time.LocalDateTime;
 @ToString
 public class PostBlock {
 
+    public static final Sort SORT = Sort.by(Sort.Direction.ASC, "orderNo");
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,6 +29,9 @@ public class PostBlock {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    // IMPORTANT: 필드명 변경 시, SORT를 반드시 함께 업데이트해야 합니다.
+    // CAUTION: 변경 누락 시 PostBlockRepository.findPageByPostId에서 오류가 발생할 수 있습니다.
+    // LINK: PostBlock.SORT
     @Column(nullable = false)
     private Integer orderNo;
 
