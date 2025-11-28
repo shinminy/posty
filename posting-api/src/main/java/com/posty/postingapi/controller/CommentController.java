@@ -39,14 +39,14 @@ public class CommentController {
     }
 
     @Operation(summary = "댓글 상세정보 조회", description = "댓글의 상세정보를 조회합니다.")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = CommentDetailResponse.class)))
+    @ApiResponse(responseCode = "200", description = "OK")
     @GetMapping("/comment/{commentId}")
     public CommentDetailResponse getComment(@PathVariable Long commentId) {
         return commentService.getCommentDetail(commentId);
     }
 
     @Operation(summary = "댓글 생성", description = "댓글을 생성합니다.")
-    @ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(implementation = CommentDetailResponse.class)))
+    @ApiResponse(responseCode = "201", description = "Created")
     @PostMapping("/comment")
     public ResponseEntity<CommentDetailResponse> createComment(@Valid @RequestBody CommentCreateRequest request) {
         CommentDetailResponse body = commentService.createComment(request);
