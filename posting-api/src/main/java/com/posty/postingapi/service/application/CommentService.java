@@ -41,6 +41,16 @@ public class CommentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Comment", commentId));
     }
 
+    private Post findPostById(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
+    }
+
+    private Account findAccountById(Long accountId) {
+        return accountRepository.findNonDeletedById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", accountId));
+    }
+
     public CommentDetailResponse getCommentDetail(Long commentId) {
         Comment comment = findCommentById(commentId);
 
@@ -99,4 +109,15 @@ public class CommentService {
                 AccountMapper.toAccountSummary(comment.getWriter())
         ));
     }
-}
+
+    public Page<CommentDetailResponse> getCommentsByAccount(Long accountId, Pageable pageable) {
+        Account account = findAccountById(accountId);
+        AccountSummary accountSummary = AccountMapper.toAccountSummary(account);
+
+        Page<Comment> comments = commentRepository.findAllByWriterId(accountId, pageable);
+        return comments.map(comment -> CommentMapper.toCommentDetailResponse(
+                comment,
+                PostMapper.toPostSummary(comment.getPost()),
+                accountSummary
+        ));
+    }}

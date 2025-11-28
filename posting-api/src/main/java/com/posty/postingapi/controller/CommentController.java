@@ -82,4 +82,14 @@ public class CommentController {
     ) {
         return commentService.getCommentsByPost(postId, pageable);
     }
+
+    @Operation(summary = "계정의 댓글 목록 조회", description = "해당 계정이 작성한 댓글들을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @GetMapping("/comments/account/{accountId}")
+    public Page<CommentDetailResponse> getCommentsByAccount(
+            @PathVariable Long accountId,
+            @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return commentService.getCommentsByAccount(accountId, pageable);
+    }
 }
