@@ -16,7 +16,6 @@ import java.util.List;
 @ToString
 public class PostUpdateRequest {
 
-    @NotEmpty
     @Size(min = 1, max = 32)
     private String title;
 

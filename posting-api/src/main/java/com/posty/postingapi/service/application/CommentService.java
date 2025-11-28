@@ -77,4 +77,9 @@ public class CommentService {
         comment.updateContent(request.getContent());
         commentRepository.save(comment);
     }
+
+    public void deleteComment(Long commentId) {
+        Comment comment = findCommentById(commentId);
+        commentRepository.delete(comment);
+    }
 }

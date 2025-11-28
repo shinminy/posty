@@ -2,6 +2,7 @@ package com.posty.postingapi.service.application;
 
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
+import com.posty.postingapi.domain.comment.CommentRepository;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.domain.series.Series;
@@ -29,6 +30,7 @@ public class SeriesService {
     private final SeriesRepository seriesRepository;
     private final PostRepository postRepository;
     private final AccountRepository accountRepository;
+    private final CommentRepository commentRepository;
 
     private final WriterCacheManager writerCacheManager;
 
@@ -39,6 +41,7 @@ public class SeriesService {
             SeriesRepository seriesRepository,
             PostRepository postRepository,
             AccountRepository accountRepository,
+            CommentRepository commentRepository,
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
             MediaEventPublisher mediaEventPublisher
@@ -46,6 +49,7 @@ public class SeriesService {
         this.seriesRepository = seriesRepository;
         this.postRepository = postRepository;
         this.accountRepository = accountRepository;
+        this.commentRepository = commentRepository;
 
         this.writerCacheManager = writerCacheManager;
 
@@ -117,6 +121,7 @@ public class SeriesService {
 
         List<Media> mediaList = mediaService.findMediaBySeriesId(seriesId);
 
+        commentRepository.deleteAllBySeriesId(seriesId);
         seriesRepository.delete(series);
 
         writerCacheManager.clearWritersOfSeries(seriesId);

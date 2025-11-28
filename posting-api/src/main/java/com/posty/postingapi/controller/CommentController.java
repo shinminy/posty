@@ -59,4 +59,12 @@ public class CommentController {
         commentService.updateComment(commentId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "댓글 삭제", description = "댓글 삭제를 요청합니다.")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+        commentService.deleteComment(commentId);
+        return ResponseEntity.noContent().build();
+    }
 }

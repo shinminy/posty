@@ -9,10 +9,10 @@ import com.posty.postingapi.domain.post.MediaStatus;
 import com.posty.postingapi.domain.post.PostBlockRepository;
 import com.posty.postingapi.infrastructure.file.FileApiClient;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
