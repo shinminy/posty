@@ -9,6 +9,7 @@ import com.posty.postingapi.domain.post.PostRepository;
 import com.posty.postingapi.dto.account.AccountSummary;
 import com.posty.postingapi.dto.comment.CommentCreateRequest;
 import com.posty.postingapi.dto.comment.CommentDetailResponse;
+import com.posty.postingapi.dto.comment.CommentUpdateRequest;
 import com.posty.postingapi.dto.post.PostSummary;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.AccountMapper;
@@ -66,5 +67,14 @@ public class CommentService {
                 PostMapper.toPostSummary(post),
                 AccountMapper.toAccountSummary(writer)
         );
+    }
+
+    public void updateComment(Long commentId, CommentUpdateRequest request) {
+        Comment comment = findCommentById(commentId);
+
+        request.normalize();
+
+        comment.updateContent(request.getContent());
+        commentRepository.save(comment);
     }
 }
