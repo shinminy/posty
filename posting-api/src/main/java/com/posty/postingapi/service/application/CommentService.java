@@ -63,14 +63,8 @@ public class CommentService {
     public CommentDetailResponse createComment(CommentCreateRequest request) {
         request.normalize();
 
-        Long postId = request.getPostId();
-        Post post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
-
-        Long accountId = request.getWriterId();
-        Account writer = accountRepository.findNonDeletedById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", accountId));
-
+        Post post = findPostById(request.getPostId());
+        Account writer = findAccountById(request.getWriterId());
         Comment comment = CommentMapper.toEntity(request, post, writer);
         commentRepository.save(comment);
 
@@ -96,13 +90,10 @@ public class CommentService {
     }
 
     public Page<CommentDetailResponse> getCommentsByPost(Long postId, Pageable pageable) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
-
-        Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
-
+        Post post = findPostById(postId);
         PostSummary postSummary = PostMapper.toPostSummary(post);
 
+        Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
         return comments.map(comment -> CommentMapper.toCommentDetailResponse(
                 comment,
                 postSummary,
