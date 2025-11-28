@@ -77,9 +77,9 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "계정의 포스트 목록 조회", description = "해당 계정이 작가인 포스트들을 조회합니다.")
+    @Operation(summary = "작가의 포스트 목록 조회", description = "해당 계정이 작가인 포스트들을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
-    @GetMapping("/posts/account/{accountId}")
+    @GetMapping("/posts/writer/{accountId}")
     public Page<PostSummary> getPostsByWriter(
             @PathVariable Long accountId,
             @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
