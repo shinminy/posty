@@ -12,11 +12,12 @@ import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostBlockMapper;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mq.MediaEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import com.posty.postingapi.properties.PaginationConfig;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,6 +37,9 @@ public class PostService {
     private final MediaService mediaService;
     private final MediaEventPublisher mediaEventPublisher;
 
+    private final int defaultPage;
+    private final int defaultPageSize;
+
     public PostService(
             PostRepository postRepository,
             PostBlockRepository postBlockRepository,
@@ -44,7 +48,8 @@ public class PostService {
             CommentRepository commentRepository,
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
-            MediaEventPublisher mediaEventPublisher
+            MediaEventPublisher mediaEventPublisher,
+            PaginationConfig paginationConfig
     ) {
         this.postRepository = postRepository;
         this.postBlockRepository = postBlockRepository;
@@ -56,6 +61,9 @@ public class PostService {
 
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
+
+        defaultPage = paginationConfig.getDefaultPage();
+        defaultPageSize = paginationConfig.getDefaultSize();
     }
 
     private Post findPostById(Long postId) {
@@ -63,17 +71,20 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
     }
 
+    private Account findWriterById(Long accountId) {
+        return accountRepository.findNonDeletedById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Writer", accountId));
+    }
+
     public PostDetailResponse getPostDetail(Long postId, int page, int size) {
         Post post = findPostById(postId);
 
         List<String> writers = writerCacheManager.loadWritersOfPosts(postId);
 
-        PageRequest pageable = PageRequest.of(page-1, size);
-        Page<PostBlock> blockData = postBlockRepository.findPageByPostIdOrderByOrderNo(postId, pageable);
+        PageRequest pageable = PageRequest.of(page, size, PostBlock.SORT);
+        Page<PostBlock> blockData = postBlockRepository.findAllByPostId(postId, pageable);
 
-        List<PostBlockResponse> blocks = blockData.stream()
-                .map(PostBlockMapper::toPostBlockResponse)
-                .collect(Collectors.toList());
+        Page<PostBlockResponse> blocks = blockData.map(PostBlockMapper::toPostBlockResponse);
 
         return PostMapper.toPostDetailResponse(post, writers, blocks);
     }
@@ -98,7 +109,18 @@ public class PostService {
                 .forEach(mediaEventPublisher::publishMediaUpload);
 
         List<String> sortedWriters = writers.stream().distinct().sorted().toList();
-        List<PostBlockResponse> blocks = saved.getBlocks().stream().map(PostBlockMapper::toPostBlockResponse).toList();
+
+        List<PostBlock> blockEntities = saved.getBlocks();
+        List<PostBlockResponse> blockResponses = blockEntities.stream()
+                .sorted(Comparator.comparing(PostBlock::getOrderNo))
+                .limit(defaultPageSize)
+                .map(PostBlockMapper::toPostBlockResponse)
+                .toList();
+        Page<PostBlockResponse> blocks = new PageImpl<>(
+                blockResponses,
+                PageRequest.of(defaultPage, defaultPageSize, PostBlock.SORT),
+                blockEntities.size()
+        );
 
         return PostMapper.toPostDetailResponse(saved, sortedWriters, blocks);
     }
@@ -114,8 +136,7 @@ public class PostService {
 
         for (PostBlockCreateRequest blockRequest : blockRequests) {
             Long writerId = blockRequest.getWriterId();
-            Account writer = accountRepository.findNonDeletedById(writerId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Account", writerId));
+            Account writer = findWriterById(writerId);
 
             PostBlock newBlock = PostBlockMapper.toEntity(blockRequest, post, writer);
             post.addBlock(newBlock);
@@ -172,8 +193,7 @@ public class PostService {
             Long newWriterId = blockRequest.getWriterId();
             Account writer = newWriterId.equals(block.getWriter().getId())
                     ? block.getWriter()
-                    : accountRepository.findNonDeletedById(newWriterId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Account", newWriterId));
+                    : findWriterById(newWriterId);
 
             PostBlock temp = PostBlockMapper.toEntity(blockRequest, post, writer);
 
@@ -227,5 +247,14 @@ public class PostService {
         writerCacheManager.clearWritersOfPosts(postId, post.getSeries().getId());
 
         requestToDeleteMediaList(mediaList);
+    }
+
+    public Page<PostSummary> getPostsByWriter(Long accountId, Pageable pageable) {
+        if (!accountRepository.existsById(accountId)) {
+            throw new ResourceNotFoundException("Account", accountId);
+        }
+
+        Page<Post> posts = postRepository.findAllByWriterId(accountId, pageable);
+        return posts.map(PostMapper::toPostSummary);
     }
 }

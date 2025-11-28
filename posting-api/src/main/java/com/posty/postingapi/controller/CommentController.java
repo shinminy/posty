@@ -7,8 +7,6 @@ import com.posty.postingapi.dto.comment.CommentUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

@@ -8,6 +8,4 @@ import java.util.List;
 public interface PostBlockRepositoryCustom {
     List<Long> findDistinctWriterIdsBySeriesId(Long seriesId);
     List<Long> findDistinctWriterIdsByPostId(Long postId);
-
-    Page<PostBlock> findPageByPostIdOrderByOrderNo(Long postId, Pageable pageable);
 }
