@@ -3,6 +3,7 @@ package com.posty.postingapi.controller;
 import com.posty.postingapi.aspect.ResponseLogging;
 import com.posty.postingapi.dto.comment.CommentCreateRequest;
 import com.posty.postingapi.dto.comment.CommentDetailResponse;
+import com.posty.postingapi.dto.comment.CommentUpdateRequest;
 import com.posty.postingapi.error.CommonErrorResponses;
 import com.posty.postingapi.service.application.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,5 +50,13 @@ public class CommentController {
                 .buildAndExpand(body.getId())
                 .toUri();
         return ResponseEntity.created(location).body(body);
+    }
+
+    @Operation(summary = "댓글 수정", description = "댓글을 수정합니다.")
+    @ApiResponse(responseCode = "204", description = "No Content")
+    @PutMapping("/{commentId}")
+    public ResponseEntity<Void> updateComment(@PathVariable Long commentId, @Valid @RequestBody CommentUpdateRequest request) {
+        commentService.updateComment(commentId, request);
+        return ResponseEntity.noContent().build();
     }
 }
