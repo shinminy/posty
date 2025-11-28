@@ -71,6 +71,11 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
     }
 
+    private Account findWriterById(Long accountId) {
+        return accountRepository.findNonDeletedById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Writer", accountId));
+    }
+
     public PostDetailResponse getPostDetail(Long postId, int page, int size) {
         Post post = findPostById(postId);
 
@@ -131,8 +136,7 @@ public class PostService {
 
         for (PostBlockCreateRequest blockRequest : blockRequests) {
             Long writerId = blockRequest.getWriterId();
-            Account writer = accountRepository.findNonDeletedById(writerId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Account", writerId));
+            Account writer = findWriterById(writerId);
 
             PostBlock newBlock = PostBlockMapper.toEntity(blockRequest, post, writer);
             post.addBlock(newBlock);
@@ -189,8 +193,7 @@ public class PostService {
             Long newWriterId = blockRequest.getWriterId();
             Account writer = newWriterId.equals(block.getWriter().getId())
                     ? block.getWriter()
-                    : accountRepository.findNonDeletedById(newWriterId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Account", newWriterId));
+                    : findWriterById(newWriterId);
 
             PostBlock temp = PostBlockMapper.toEntity(blockRequest, post, writer);
 
