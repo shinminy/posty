@@ -1,77 +1,70 @@
 package com.posty.postingapi.infrastructure.persistence.post;
 
 import com.posty.postingapi.domain.post.*;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
+import com.posty.postingapi.infrastructure.persistence.BaseQuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public class MediaRepositoryImpl implements MediaRepositoryCustom {
+public class MediaRepositoryImpl extends BaseQuerydslRepositorySupport implements MediaRepositoryCustom {
 
-    private final JPAQueryFactory queryFactory;
-
-    public MediaRepositoryImpl(EntityManager entityManager) {
-        this.queryFactory = new JPAQueryFactory(entityManager);
+    public MediaRepositoryImpl() {
+        super(Media.class);
     }
 
     @Override
     public List<Media> findMediaWithUploadFailures(int maxUploadAttemptCount) {
-        QMedia qMedia = QMedia.media;
+        QMedia media = QMedia.media;
 
-        return queryFactory
-                .selectFrom(qMedia)
+        return from(media)
                 .where(
-                        qMedia.status.eq(MediaStatus.UPLOAD_FAILED),
-                        qMedia.uploadAttemptCount.lt(maxUploadAttemptCount)
+                        media.status.eq(MediaStatus.UPLOAD_FAILED),
+                        media.uploadAttemptCount.lt(maxUploadAttemptCount)
                 )
                 .fetch();
     }
 
     @Override
     public List<Media> findMediaWithDeletionFailures(int maxDeletionAttemptCount) {
-        QMedia qMedia = QMedia.media;
+        QMedia media = QMedia.media;
 
-        return queryFactory
-                .selectFrom(qMedia)
+        return from(media)
                 .where(
-                        qMedia.status.eq(MediaStatus.DELETION_FAILED),
-                        qMedia.deleteAttemptCount.lt(maxDeletionAttemptCount)
+                        media.status.eq(MediaStatus.DELETION_FAILED),
+                        media.deleteAttemptCount.lt(maxDeletionAttemptCount)
                 )
                 .fetch();
     }
 
     @Override
     public List<Media> findMediaBySeriesId(long seriesId) {
-        QPost qPost = QPost.post;
-        QPostBlock qPostBlock = QPostBlock.postBlock;
-        QMedia qMedia = QMedia.media;
+        QPost post = QPost.post;
+        QPostBlock postBlock = QPostBlock.postBlock;
+        QMedia media = QMedia.media;
 
-        return queryFactory
-                .select(qMedia)
-                .from(qPost)
-                .join(qPost.blocks, qPostBlock)
-                .join(qPostBlock.media, qMedia)
+        return from(post)
+                .join(post.blocks, postBlock)
+                .join(postBlock.media, media)
                 .where(
-                        qPost.series.id.eq(seriesId)
+                        post.series.id.eq(seriesId)
                 )
+                .select(media)
                 .fetch();
     }
 
     @Override
     public List<Media> findMediaByPostId(long postId) {
-        QPostBlock qPostBlock = QPostBlock.postBlock;
-        QMedia qMedia = QMedia.media;
+        QPostBlock postBlock = QPostBlock.postBlock;
+        QMedia media = QMedia.media;
 
-        return queryFactory
-                .select(qMedia)
-                .from(qPostBlock)
-                .join(qPostBlock.media, qMedia)
+        return from(postBlock)
+                .join(postBlock.media, media)
                 .where(
-                        qPostBlock.post.id.eq(postId),
-                        qPostBlock.contentType.eq(ContentType.MEDIA)
+                        postBlock.post.id.eq(postId),
+                        postBlock.contentType.eq(ContentType.MEDIA)
                 )
+                .select(media)
                 .fetch();
     }
 }

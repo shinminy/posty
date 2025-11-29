@@ -1,22 +1,20 @@
 package com.posty.postingapi.infrastructure.persistence.comment;
 
+import com.posty.postingapi.domain.comment.Comment;
 import com.posty.postingapi.domain.comment.CommentRepositoryCustom;
 import com.posty.postingapi.domain.comment.QComment;
 import com.posty.postingapi.domain.post.QPost;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
+import com.posty.postingapi.infrastructure.persistence.BaseQuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Repository
-public class CommentRepositoryImpl implements CommentRepositoryCustom {
+public class CommentRepositoryImpl extends BaseQuerydslRepositorySupport implements CommentRepositoryCustom {
 
-    private final JPAQueryFactory queryFactory;
-
-    public CommentRepositoryImpl(EntityManager entityManager) {
-        this.queryFactory = new JPAQueryFactory(entityManager);
+    public CommentRepositoryImpl() {
+        super(Comment.class);
     }
 
     @Override
@@ -25,19 +23,17 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
         QComment comment = QComment.comment;
         QPost post = QPost.post;
 
-        List<Long> commentIds = queryFactory
-                .select(comment.id)
-                .from(comment)
+        List<Long> commentIds = from(comment)
                 .join(comment.post, post)
                 .where(post.series.id.eq(seriesId))
+                .select(comment.id)
                 .fetch();
 
         if (commentIds.isEmpty()) {
             return 0;
         }
 
-        return queryFactory
-                .delete(comment)
+        return delete(comment)
                 .where(comment.id.in(commentIds))
                 .execute();
     }
