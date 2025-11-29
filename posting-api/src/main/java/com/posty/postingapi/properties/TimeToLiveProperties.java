@@ -5,12 +5,13 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "pagination")
-public class PaginationConfig {
+@ConfigurationProperties(prefix = "time-to-live")
+public class TimeToLiveProperties {
 
-    private int defaultPage;
-    private int defaultSize;
+    private Duration accountNameCache;
 }

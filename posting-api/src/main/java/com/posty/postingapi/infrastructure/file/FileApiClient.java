@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posty.common.dto.FileUploadRequest;
 import com.posty.common.dto.FileUploadResponse;
-import com.posty.postingapi.properties.MediaConfig;
+import com.posty.postingapi.properties.MediaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -23,12 +23,12 @@ public class FileApiClient {
     private final String fileApiUrl;
     private final String fileApiToken;
 
-    public FileApiClient(RestTemplate restTemplate, ObjectMapper objectMapper, MediaConfig mediaConfig) {
+    public FileApiClient(RestTemplate restTemplate, ObjectMapper objectMapper, MediaProperties mediaProperties) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
 
-        fileApiUrl = mediaConfig.getFileApiUrl();
-        fileApiToken = mediaConfig.getFileApiToken();
+        fileApiUrl = mediaProperties.getFileApiUrl();
+        fileApiToken = mediaProperties.getFileApiToken();
     }
 
     public FileUploadResponse upload(FileUploadRequest request) {

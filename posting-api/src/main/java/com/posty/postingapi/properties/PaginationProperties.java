@@ -8,11 +8,9 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "media")
-public class MediaConfig {
+@ConfigurationProperties(prefix = "pagination")
+public class PaginationProperties {
 
-    private String fileApiUrl;
-    private String fileApiToken;
-    private String uploadQueueName;
-    private String deleteQueueName;
+    private int defaultPage;
+    private int defaultSize;
 }

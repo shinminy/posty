@@ -3,7 +3,7 @@ package com.posty.postingapi.infrastructure.cache;
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.domain.post.PostBlockRepository;
-import com.posty.postingapi.properties.TimeToLiveConfig;
+import com.posty.postingapi.properties.TimeToLiveProperties;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -26,12 +26,12 @@ public class WriterCacheManager {
     public WriterCacheManager(RedisManager redisManager,
                               AccountRepository accountRepository,
                               PostBlockRepository postBlockRepository,
-                              TimeToLiveConfig timeToLiveConfig) {
+                              TimeToLiveProperties timeToLiveProperties) {
         this.redisManager = redisManager;
         this.accountRepository = accountRepository;
         this.postBlockRepository = postBlockRepository;
 
-        this.accountNameTtl = timeToLiveConfig.getAccountNameCache();
+        this.accountNameTtl = timeToLiveProperties.getAccountNameCache();
     }
 
     private String createSeriesWriterIdsKey(long seriesId) {

@@ -2,7 +2,7 @@ package com.posty.postingapi.aspect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.posty.postingapi.properties.ApiConfig;
+import com.posty.postingapi.properties.ApiProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,12 +21,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @ControllerAdvice
 public class ResponseLogger implements ResponseBodyAdvice<Object> {
 
-    private final ApiConfig apiConfig;
+    private final ApiProperties apiProperties;
 
     private final ObjectMapper objectMapper;
 
-    public ResponseLogger(ApiConfig apiConfig, ObjectMapper objectMapper) {
-        this.apiConfig = apiConfig;
+    public ResponseLogger(ApiProperties apiProperties, ObjectMapper objectMapper) {
+        this.apiProperties = apiProperties;
 
         this.objectMapper = objectMapper;
     }
@@ -40,7 +40,7 @@ public class ResponseLogger implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
         HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
-        String requestId = (String) servletRequest.getAttribute(apiConfig.getRequestIdName());
+        String requestId = (String) servletRequest.getAttribute(apiProperties.getRequestIdName());
 
         if (StringUtils.isBlank(requestId)) {
             return body;

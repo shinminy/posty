@@ -5,7 +5,7 @@ import com.posty.postingapi.dto.account.AccountDeleteResponse;
 import com.posty.postingapi.dto.account.AccountDetailResponse;
 import com.posty.postingapi.dto.account.AccountUpdateRequest;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
-import com.posty.postingapi.properties.SchedulerConfig;
+import com.posty.postingapi.properties.SchedulerProperties;
 import com.posty.postingapi.domain.account.*;
 import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.posty.postingapi.error.AccountUpdateNotAllowedException;
@@ -39,7 +39,7 @@ public class AccountService {
     public AccountService(
             AccountRepository accountRepository, AccountDeletionScheduleRepository accountDeletionScheduleRepository,
             WriterCacheManager writerCacheManager,
-            Clock clock, PasswordEncoder passwordEncoder, SchedulerConfig schedulerConfig
+            Clock clock, PasswordEncoder passwordEncoder, SchedulerProperties schedulerProperties
     ) {
         this.accountRepository = accountRepository;
         this.accountDeletionScheduleRepository = accountDeletionScheduleRepository;
@@ -49,7 +49,7 @@ public class AccountService {
         this.clock = clock;
         this.passwordEncoder = passwordEncoder;
 
-        this.deletionGracePeriodDays = schedulerConfig.getAccount().getDeletion().getGracePeriodDays();
+        this.deletionGracePeriodDays = schedulerProperties.getAccount().getDeletion().getGracePeriodDays();
     }
 
     private Account findAccountById(Long accountId) {

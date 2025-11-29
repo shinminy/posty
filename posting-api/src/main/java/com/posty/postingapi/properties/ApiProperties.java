@@ -5,13 +5,13 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
-
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "time-to-live")
-public class TimeToLiveConfig {
+@ConfigurationProperties(prefix = "api")
+public class ApiProperties {
 
-    private Duration accountNameCache;
+    private String requestIdName;
+    private String keyHeaderName;
+    private String xffHeaderName;
 }
