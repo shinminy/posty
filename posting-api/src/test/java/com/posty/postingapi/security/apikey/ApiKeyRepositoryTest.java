@@ -1,6 +1,6 @@
 package com.posty.postingapi.security.apikey;
 
-import com.posty.postingapi.properties.TimeConfig;
+import com.posty.postingapi.config.TimeConfig;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

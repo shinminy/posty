@@ -8,10 +8,11 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "api")
-public class ApiConfig {
+@ConfigurationProperties(prefix = "media")
+public class MediaProperties {
 
-    private String requestIdName;
-    private String keyHeaderName;
-    private String xffHeaderName;
+    private String fileApiUrl;
+    private String fileApiToken;
+    private String uploadQueueName;
+    private String deleteQueueName;
 }

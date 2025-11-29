@@ -1,6 +1,6 @@
 package com.posty.postingapi.aspect;
 
-import com.posty.postingapi.properties.ApiConfig;
+import com.posty.postingapi.properties.ApiProperties;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +21,10 @@ import java.util.UUID;
 @Component
 public class RequestLogger {
 
-    private final ApiConfig apiConfig;
+    private final ApiProperties apiProperties;
 
-    public RequestLogger(ApiConfig apiConfig) {
-        this.apiConfig = apiConfig;
+    public RequestLogger(ApiProperties apiProperties) {
+        this.apiProperties = apiProperties;
     }
 
     @Pointcut("execution(* com.posty.postingapi.controller.*.*(..))")
@@ -40,7 +40,7 @@ public class RequestLogger {
         HttpServletRequest servletRequest = attributes.getRequest();
 
         String requestId = UUID.randomUUID().toString();
-        servletRequest.setAttribute(apiConfig.getRequestIdName(), requestId);
+        servletRequest.setAttribute(apiProperties.getRequestIdName(), requestId);
 
         String body;
         if (servletRequest instanceof ContentCachingRequestWrapper wrapper) {
@@ -66,15 +66,15 @@ public class RequestLogger {
                 servletRequest.getRequestURL().toString(),
                 servletRequest.getParameterMap(),
                 getClientIp(servletRequest),
-                apiConfig.getKeyHeaderName(),
-                servletRequest.getHeader(apiConfig.getKeyHeaderName()),
+                apiProperties.getKeyHeaderName(),
+                servletRequest.getHeader(apiProperties.getKeyHeaderName()),
                 body
         );
     }
 
     private String getClientIp(HttpServletRequest request) {
         // 프록시를 거친 경우를 확인하여 거치지 않았다면 X-Forwarded-For 헤더가 없으므로 remoteAddr를 바로 가져옴
-        String clientIp = Optional.ofNullable(request.getHeader(apiConfig.getXffHeaderName()))
+        String clientIp = Optional.ofNullable(request.getHeader(apiProperties.getXffHeaderName()))
                 .filter(StringUtils::isNotEmpty)
                 .orElse(request.getRemoteAddr());
 

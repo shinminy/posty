@@ -1,4 +1,4 @@
-package com.posty.postingapi.properties;
+package com.posty.postingapi.config;
 
 import lombok.Getter;
 import lombok.Setter;

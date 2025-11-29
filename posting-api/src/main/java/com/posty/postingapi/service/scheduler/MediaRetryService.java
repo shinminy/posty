@@ -1,6 +1,6 @@
 package com.posty.postingapi.service.scheduler;
 
-import com.posty.postingapi.properties.SchedulerConfig;
+import com.posty.postingapi.properties.SchedulerProperties;
 import com.posty.postingapi.domain.post.*;
 import com.posty.postingapi.mq.MediaEventPublisher;
 import com.posty.postingapi.service.application.MediaService;
@@ -22,12 +22,12 @@ public class MediaRetryService {
     public MediaRetryService(
             MediaService mediaService,
             MediaEventPublisher mediaEventPublisher,
-            SchedulerConfig schedulerConfig
+            SchedulerProperties schedulerProperties
     ) {
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
 
-        SchedulerConfig.MediaSchedulerConfig.MediaRetryConfig retryConfig = schedulerConfig.getMedia().getRetry();
+        SchedulerProperties.MediaSchedulerConfig.MediaRetryConfig retryConfig = schedulerProperties.getMedia().getRetry();
         maxUploadAttemptCount = retryConfig.getUpload().getMaxAttemptCount();
         maxDeletionAttemptCount = retryConfig.getDelete().getMaxAttemptCount();
     }

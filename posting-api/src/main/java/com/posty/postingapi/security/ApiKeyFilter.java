@@ -1,6 +1,6 @@
 package com.posty.postingapi.security;
 
-import com.posty.postingapi.properties.ApiConfig;
+import com.posty.postingapi.properties.ApiProperties;
 import com.posty.postingapi.security.apikey.ApiKeyRepository;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
@@ -18,11 +18,11 @@ import java.io.IOException;
 @Component
 public class ApiKeyFilter extends OncePerRequestFilter {
 
-    private final ApiConfig apiConfig;
+    private final ApiProperties apiProperties;
     private final ApiKeyRepository apiKeyRepository;
 
-    public ApiKeyFilter(ApiConfig apiConfig, ApiKeyRepository apiKeyRepository) {
-        this.apiConfig = apiConfig;
+    public ApiKeyFilter(ApiProperties apiProperties, ApiKeyRepository apiKeyRepository) {
+        this.apiProperties = apiProperties;
         this.apiKeyRepository = apiKeyRepository;
     }
 
@@ -35,7 +35,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String apiKey = request.getHeader(apiConfig.getKeyHeaderName());
+        String apiKey = request.getHeader(apiProperties.getKeyHeaderName());
 
         if (StringUtils.isEmpty(apiKey)) {
             fail(response, apiKey, "Missing API key");

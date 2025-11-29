@@ -16,7 +16,7 @@ import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mapper.SeriesMapper;
 import com.posty.postingapi.mq.MediaEventPublisher;
-import com.posty.postingapi.properties.PaginationConfig;
+import com.posty.postingapi.properties.PaginationProperties;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +49,7 @@ public class SeriesService {
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
             MediaEventPublisher mediaEventPublisher,
-            PaginationConfig paginationConfig
+            PaginationProperties paginationProperties
     ) {
         this.seriesRepository = seriesRepository;
         this.postRepository = postRepository;
@@ -61,8 +61,8 @@ public class SeriesService {
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
 
-        defaultPage = paginationConfig.getDefaultPage();
-        defaultPageSize = paginationConfig.getDefaultSize();
+        defaultPage = paginationProperties.getDefaultPage();
+        defaultPageSize = paginationProperties.getDefaultSize();
     }
 
     private Series findSeriesById(Long seriesId) {

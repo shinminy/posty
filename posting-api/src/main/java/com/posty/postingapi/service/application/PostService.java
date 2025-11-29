@@ -12,7 +12,7 @@ import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostBlockMapper;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mq.MediaEventPublisher;
-import com.posty.postingapi.properties.PaginationConfig;
+import com.posty.postingapi.properties.PaginationProperties;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +49,7 @@ public class PostService {
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
             MediaEventPublisher mediaEventPublisher,
-            PaginationConfig paginationConfig
+            PaginationProperties paginationProperties
     ) {
         this.postRepository = postRepository;
         this.postBlockRepository = postBlockRepository;
@@ -62,8 +62,8 @@ public class PostService {
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
 
-        defaultPage = paginationConfig.getDefaultPage();
-        defaultPageSize = paginationConfig.getDefaultSize();
+        defaultPage = paginationProperties.getDefaultPage();
+        defaultPageSize = paginationProperties.getDefaultSize();
     }
 
     private Post findPostById(Long postId) {

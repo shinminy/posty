@@ -1,7 +1,7 @@
 package com.posty.postingapi.mq;
 
 import com.posty.postingapi.domain.post.Media;
-import com.posty.postingapi.properties.MediaConfig;
+import com.posty.postingapi.properties.MediaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
@@ -15,11 +15,11 @@ public class MediaEventPublisher {
     private final String uploadQueueName;
     private final String deleteQueueName;
 
-    public MediaEventPublisher(JmsTemplate jmsTemplate, MediaConfig mediaConfig) {
+    public MediaEventPublisher(JmsTemplate jmsTemplate, MediaProperties mediaProperties) {
         this.jmsTemplate = jmsTemplate;
 
-        uploadQueueName = mediaConfig.getUploadQueueName();
-        deleteQueueName = mediaConfig.getDeleteQueueName();
+        uploadQueueName = mediaProperties.getUploadQueueName();
+        deleteQueueName = mediaProperties.getDeleteQueueName();
     }
 
     public void publishMediaUpload(Media media) {

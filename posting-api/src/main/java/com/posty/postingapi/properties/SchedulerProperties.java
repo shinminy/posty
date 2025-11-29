@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "scheduler")
-public class SchedulerConfig {
+public class SchedulerProperties {
 
     private AccountSchedulerConfig account = new AccountSchedulerConfig();
     private MediaSchedulerConfig media = new MediaSchedulerConfig();
