@@ -1,5 +1,6 @@
 package com.posty.postingapi.domain.account;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.dto.account.AccountUpdateRequest;
 import jakarta.persistence.*;
@@ -32,6 +33,7 @@ public class Account {
     private String email;
 
     @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ToString.Exclude
     private String password;
 

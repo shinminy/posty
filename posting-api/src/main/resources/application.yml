@@ -5,6 +5,12 @@ api:
   request-id-name: X-Request-ID
   key-header-name: X-API-KEY
   xff-header-name: X-Forwarded-For
+  auth-type-key: authType
+
+security:
+  jwt:
+    access-expiry: 10m
+    refresh-expiry: 1d
 
 time-to-live:
   account-name-cache: 30d

@@ -18,42 +18,47 @@ import java.io.IOException;
 @Component
 public class ApiKeyFilter extends OncePerRequestFilter {
 
-    private final ApiProperties apiProperties;
     private final ApiKeyRepository apiKeyRepository;
 
-    public ApiKeyFilter(ApiProperties apiProperties, ApiKeyRepository apiKeyRepository) {
-        this.apiProperties = apiProperties;
+    private final String apiKeyHeaderName;
+    private final String authTypeKey;
+
+    public ApiKeyFilter(ApiKeyRepository apiKeyRepository, ApiProperties apiProperties) {
         this.apiKeyRepository = apiKeyRepository;
+
+        apiKeyHeaderName = apiProperties.getKeyHeaderName();
+        authTypeKey = apiProperties.getAuthTypeKey();
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        //"/docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/webjars/**", "/favicon*.png"
         return path.startsWith("/docs/");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String apiKey = request.getHeader(apiProperties.getKeyHeaderName());
+        String apiKey = request.getHeader(apiKeyHeaderName);
 
         if (StringUtils.isEmpty(apiKey)) {
-            fail(response, apiKey, "Missing API key");
+            fail(request, response, apiKey, "Missing API key");
             return;
         }
 
         String hashedKey = DigestUtils.sha512Hex(apiKey);
 
         if (!apiKeyRepository.isValid(hashedKey)) {
-            fail(response, apiKey, "Invalid or expired API key");
+            fail(request, response, apiKey, "Invalid or expired API key");
             return;
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void fail(HttpServletResponse response, String apiKey, String message) throws IOException {
+    private void fail(HttpServletRequest request, HttpServletResponse response, String apiKey, String message) throws IOException {
         log.info("Wrong API key! [{}] {} {}", HttpServletResponse.SC_UNAUTHORIZED, message, apiKey);
+
+        request.setAttribute(authTypeKey, AuthType.API_KEY);
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
     }
 }
