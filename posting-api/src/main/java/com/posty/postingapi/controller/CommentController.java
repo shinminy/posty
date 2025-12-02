@@ -1,6 +1,7 @@
 package com.posty.postingapi.controller;
 
 import com.posty.postingapi.aspect.ResponseLogging;
+import com.posty.postingapi.config.OpenApiConfig;
 import com.posty.postingapi.dto.comment.CommentCreateRequest;
 import com.posty.postingapi.dto.comment.CommentDetailResponse;
 import com.posty.postingapi.dto.comment.CommentUpdateRequest;
@@ -22,7 +23,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 
-@Tag(name = "댓글 관리 API", description = "댓글 관련 CRUD API")
+@Tag(
+        name = "댓글 관리 API",
+        description = "댓글 관련 CRUD API" +
+                " (***" + OpenApiConfig.API_KEY_SCHEME_NAME + "***, ***" + OpenApiConfig.BEARER_SCHEME_NAME + "*** 필요)"
+)
 @CommonErrorResponses
 @ResponseLogging
 @Validated
