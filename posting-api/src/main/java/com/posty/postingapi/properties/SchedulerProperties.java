@@ -11,18 +11,18 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "scheduler")
 public class SchedulerProperties {
 
-    private AccountSchedulerConfig account = new AccountSchedulerConfig();
-    private MediaSchedulerConfig media = new MediaSchedulerConfig();
+    private AccountSchedulerProperties account = new AccountSchedulerProperties();
+    private MediaSchedulerProperties media = new MediaSchedulerProperties();
 
     @Getter
     @Setter
-    public static class AccountSchedulerConfig {
+    public static class AccountSchedulerProperties {
 
-        private AccountDeletionConfig deletion = new AccountDeletionConfig();
+        private AccountDeletionProperties deletion = new AccountDeletionProperties();
 
         @Getter
         @Setter
-        public static class AccountDeletionConfig {
+        public static class AccountDeletionProperties {
 
             private int gracePeriodDays;
         }
@@ -30,27 +30,27 @@ public class SchedulerProperties {
 
     @Getter
     @Setter
-    public static class MediaSchedulerConfig {
+    public static class MediaSchedulerProperties {
 
-        private MediaRetryConfig retry = new MediaRetryConfig();
+        private MediaRetryProperties retry = new MediaRetryProperties();
 
         @Getter
         @Setter
-        public static class MediaRetryConfig {
+        public static class MediaRetryProperties {
 
-            private MediaUploadRetryConfig upload = new MediaUploadRetryConfig();
-            private MediaDeleteRetryConfig delete = new MediaDeleteRetryConfig();
+            private MediaUploadRetryProperties upload = new MediaUploadRetryProperties();
+            private MediaDeleteRetryProperties delete = new MediaDeleteRetryProperties();
 
             @Getter
             @Setter
-            public static class MediaUploadRetryConfig {
+            public static class MediaUploadRetryProperties {
 
                 private int maxAttemptCount;
             }
 
             @Getter
             @Setter
-            public static class MediaDeleteRetryConfig {
+            public static class MediaDeleteRetryProperties {
 
                 private int maxAttemptCount;
             }

@@ -1,8 +1,8 @@
 package com.posty.postingapi.config;
 
+import com.posty.postingapi.properties.TimeProperties;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,10 +12,13 @@ import java.time.ZoneId;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "time")
 public class TimeConfig {
 
     private String zoneId;
+
+    public TimeConfig(TimeProperties timeProperties) {
+        zoneId = timeProperties.getZoneId();
+    }
 
     @Bean
     public Clock clock() {
