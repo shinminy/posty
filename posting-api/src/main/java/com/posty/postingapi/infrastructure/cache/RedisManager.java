@@ -1,5 +1,6 @@
 package com.posty.postingapi.infrastructure.cache;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,7 +23,26 @@ public class RedisManager {
         this.redisTemplate = redisTemplate;
     }
 
-    public void saveList(@NotEmpty String key, @NotNull List<?> values) {
+    public <T> void saveValue(@NotBlank String key, @NotNull T value) {
+        saveValueWithTtl(key, value, null);
+    }
+
+    // ttl이 null/0/음수면 TTL(유효기간) 없이 저장
+    public <T> void saveValueWithTtl(@NotBlank String key, @NotNull T value, Duration ttl) {
+        if (ttl == null || ttl.isZero() || ttl.isNegative()) {
+            redisTemplate.opsForValue().set(key, value);
+            return;
+        }
+
+        redisTemplate.opsForValue().set(key, value, ttl.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    public <T> T getValue(@NotBlank String key, @NotNull Class<T> clazz) {
+        Object value = redisTemplate.opsForValue().get(key);
+        return value == null ? null : convertToType(value, clazz);
+    }
+
+    public void saveList(@NotBlank String key, @NotNull List<?> values) {
         if (values.isEmpty()) {
             redisTemplate.opsForList().rightPush(key, EMPTY_PLACEHOLDER);
         } else {
@@ -32,7 +52,7 @@ public class RedisManager {
         }
     }
 
-    public <T> List<T> getList(@NotEmpty String key, Class<T> clazz) {
+    public <T> List<T> getList(@NotBlank String key, Class<T> clazz) {
         List<Object> list = redisTemplate.opsForList().range(key, 0, -1);
         return list == null || list.isEmpty() || (list.size() == 1 && EMPTY_PLACEHOLDER.equals(list.get(0)))
                 ? List.of()
@@ -62,7 +82,7 @@ public class RedisManager {
         return clazz.cast(obj);
     }
 
-    public void updateList(@NotEmpty String key, @NotNull List<?> values) {
+    public void updateList(@NotBlank String key, @NotNull List<?> values) {
         redisTemplate.delete(key);
         saveList(key, values);
     }
@@ -100,11 +120,11 @@ public class RedisManager {
         );
     }
 
-    public void delete(@NotEmpty String key) {
+    public void delete(@NotBlank String key) {
         redisTemplate.delete(key);
     }
 
-    public boolean hasKey(@NotEmpty String key) {
+    public boolean hasKey(@NotBlank String key) {
         return redisTemplate.hasKey(key);
     }
 

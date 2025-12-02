@@ -14,4 +14,6 @@ public class ApiProperties {
     private String requestIdName;
     private String keyHeaderName;
     private String xffHeaderName;
+
+    private String authTypeKey;
 }

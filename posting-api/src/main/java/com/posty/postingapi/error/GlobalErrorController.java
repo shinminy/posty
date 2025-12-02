@@ -1,5 +1,7 @@
 package com.posty.postingapi.error;
 
+import com.posty.postingapi.properties.ApiProperties;
+import com.posty.postingapi.security.AuthType;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -15,9 +17,11 @@ import java.time.Clock;
 public class GlobalErrorController implements ErrorController {
 
     private final Clock clock;
+    private final String authTypeKey;
 
-    public GlobalErrorController(Clock clock) {
+    public GlobalErrorController(Clock clock, ApiProperties apiProperties) {
         this.clock = clock;
+        authTypeKey = apiProperties.getAuthTypeKey();
     }
 
     @RequestMapping
@@ -29,9 +33,19 @@ public class GlobalErrorController implements ErrorController {
 
             Object statusObj = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
             if (statusObj instanceof Integer && Integer.parseInt(statusObj.toString()) == unauthorizedStatus.value()) {
+                AuthType authType = (AuthType) request.getAttribute(authTypeKey);
+                String message;
+                if (authType == AuthType.API_KEY) {
+                    message = "Please provide a valid API key.";
+                } else if (authType == AuthType.JWT) {
+                    message = "Please provide a valid access token.";
+                } else {
+                    message = "Unauthorized access.";
+                }
+
                 errorResponse = new ErrorResponse(
                         unauthorizedStatus,
-                        "Please provide a valid API key.",
+                        message,
                         request.getRequestURI(),
                         clock
                 );

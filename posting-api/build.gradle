@@ -55,6 +55,10 @@ dependencies {
 
     implementation 'commons-codec:commons-codec'
 
+    implementation "io.jsonwebtoken:jjwt-api:${rootProject.ext.jjwtApiVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${rootProject.ext.jjwtApiVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${rootProject.ext.jjwtApiVersion}"
+
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation 'org.springframework.boot:spring-boot-starter-activemq'
