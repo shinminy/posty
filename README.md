@@ -22,7 +22,7 @@
 * Version Control: Git, GitHub
 * IDE: IntelliJ IDEA
 * CI/CD: GitHub Actions
-* 지원 도구: ChatGPT (구조 설계 및 코드 리뷰 보조용)
+* 지원 도구: ChatGPT, Claude, Gemini (구조 설계 및 코드 리뷰 보조용)
 
 ## 서비스
 
