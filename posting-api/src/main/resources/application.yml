@@ -5,13 +5,30 @@ api:
   request-id-name: X-Request-ID
   key-header-name: X-API-KEY
   xff-header-name: X-Forwarded-For
+  auth-type-key: authType
+
+security:
+  jwt:
+    access-expiry: 10m
+    refresh-expiry: 1d
 
 time-to-live:
   account-name-cache: 30d
+  verification:
+    rate-limit: 1h
+    code: 5m
+    verified: 1h
+
+verification:
+  max-code-request: 5
 
 pagination:
   default-page: 0
   default-size: 10
+
+mail:
+  from:
+    no-reply: no-reply@posty.com
 
 media:
   file-api-url: ${FILE_API_URL}
@@ -78,6 +95,14 @@ spring:
     password: ${ACTIVEMQ_PASSWORD}
   jmx:
     enabled: false
+  mail:
+    host: ${MAIL_HOST}
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_APP_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 springdoc:
   packages-to-scan: com.posty.postingapi.controller

@@ -27,9 +27,9 @@ public class MediaRetryService {
         this.mediaService = mediaService;
         this.mediaEventPublisher = mediaEventPublisher;
 
-        SchedulerProperties.MediaSchedulerConfig.MediaRetryConfig retryConfig = schedulerProperties.getMedia().getRetry();
-        maxUploadAttemptCount = retryConfig.getUpload().getMaxAttemptCount();
-        maxDeletionAttemptCount = retryConfig.getDelete().getMaxAttemptCount();
+        SchedulerProperties.MediaSchedulerProperties.MediaRetryProperties retryProperties = schedulerProperties.getMedia().getRetry();
+        maxUploadAttemptCount = retryProperties.getUpload().getMaxAttemptCount();
+        maxDeletionAttemptCount = retryProperties.getDelete().getMaxAttemptCount();
     }
 
     public void retryFailedUploads() {

@@ -1,6 +1,7 @@
 ext {
     lombokVersion = '1.18.38'
     queryDslVersion = '5.1.0'
+    jjwtApiVersion = '0.13.0'
 }
 
 allprojects {

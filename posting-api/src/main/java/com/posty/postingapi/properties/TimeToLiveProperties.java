@@ -14,4 +14,14 @@ import java.time.Duration;
 public class TimeToLiveProperties {
 
     private Duration accountNameCache;
+    private VerificationProperties verification = new VerificationProperties();
+
+    @Getter
+    @Setter
+    public static class VerificationProperties {
+
+        private Duration rateLimit;
+        private Duration code;
+        private Duration verified;
+    }
 }

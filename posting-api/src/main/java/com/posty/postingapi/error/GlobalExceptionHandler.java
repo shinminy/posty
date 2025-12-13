@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -59,10 +60,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
+            VerificationFailedException.class,
             ResourceNotFoundException.class,
             DuplicateAccountException.class,
             AccountUpdateNotAllowedException.class,
             DuplicateAccountDeletionException.class,
+            AlreadyProcessedException.class,
+            TooManyRequestsException.class,
     })
     public ResponseEntity<ErrorResponse> handleMessageCustomException(Exception e, HttpServletRequest request) {
         HttpStatus status = e.getClass().getAnnotation(ResponseStatus.class).value();

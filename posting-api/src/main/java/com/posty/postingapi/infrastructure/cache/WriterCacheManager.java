@@ -23,10 +23,12 @@ public class WriterCacheManager {
 
     private final Duration accountNameTtl;
 
-    public WriterCacheManager(RedisManager redisManager,
-                              AccountRepository accountRepository,
-                              PostBlockRepository postBlockRepository,
-                              TimeToLiveProperties timeToLiveProperties) {
+    public WriterCacheManager(
+            RedisManager redisManager,
+            AccountRepository accountRepository,
+            PostBlockRepository postBlockRepository,
+            TimeToLiveProperties timeToLiveProperties
+    ) {
         this.redisManager = redisManager;
         this.accountRepository = accountRepository;
         this.postBlockRepository = postBlockRepository;

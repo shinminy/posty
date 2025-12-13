@@ -55,6 +55,10 @@ dependencies {
 
     implementation 'commons-codec:commons-codec'
 
+    implementation "io.jsonwebtoken:jjwt-api:${rootProject.ext.jjwtApiVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${rootProject.ext.jjwtApiVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${rootProject.ext.jjwtApiVersion}"
+
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation 'org.springframework.boot:spring-boot-starter-activemq'
@@ -62,6 +66,8 @@ dependencies {
     implementation 'org.apache.tika:tika-core:3.2.0'
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 def generated = layout.buildDirectory.dir("generated/querydsl").get().asFile
