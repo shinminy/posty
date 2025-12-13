@@ -33,11 +33,55 @@
 
 ### posting-api
 
-포스팅 서비스를 위한 내부 REST API입니다. (현재 링크된 주소는 개발용 로컬 주소입니다. API 문서 주소는 따로 알려드립니다.)
+포스팅 서비스를 위한 내부 REST API입니다. (현재 문서에 링크된 주소는 개발용 로컬 주소입니다.)
+
+#### posting-api 관련 페이지
 
 * API 문서 : [Swagger UI](https://localhost:15793/docs/swagger-ui/index.html)
 * ActiveMQ 관리 페이지 : [ActiveMQ Console](https://localhost:8162/admin/index.jsp)
 
+#### posting-api의 VM 옵션 목록
+
+```
+-DFILE_API_URL=http://localhost:12684/file
+-DFILE_API_TOKEN=
+-DKEY_STORE=
+-DKEY_STORE_PASSWORD=
+-DKEY_ALIAS=
+-DDB_URL=
+-DDB_USERNAME=
+-DDB_PASSWORD=
+-DREDIS_HOST=
+-DACTIVEMQ_BROKER_URL=
+-DACTIVEMQ_USER=
+-DACTIVEMQ_PASSWORD=
+-DMAIL_HOST=
+-DMAIL_USERNAME=
+-DMAIL_APP_PASSWORD=
+-Dlogging.config=classpath:log4j2-local.xml
+-Duser.language=en
+-Duser.timezone=Asia/Seoul
+```
+
+* **FILE_API_TOKEN** 값은 [file-api의 VM 옵션 목록](#file-api의-VM-옵션-목록)의 **API_TOKEN** 값과 같아야 합니다.
+
 ### file-api
 
 파일 업로드 및 다운로드를 위한 REST API입니다.
+
+#### file-api의 VM 옵션 목록
+
+```
+-DAPI_TOKEN=
+-DTEMP_PATH=
+-DBASE_PATH=
+-DCLAMAV_HOST=
+-DKEY_STORE=
+-DKEY_STORE_PASSWORD=
+-DKEY_ALIAS=
+-Dlogging.config=classpath:log4j2-local.xml
+-Duser.language=en
+-Duser.timezone=Asia/Seoul
+```
+
+* **API_TOKEN** 값은 [posting-api의 VM 옵션 목록](#posting-api의-VM-옵션-목록)의 **FILE_API_TOKEN** 값과 같아야 합니다.
