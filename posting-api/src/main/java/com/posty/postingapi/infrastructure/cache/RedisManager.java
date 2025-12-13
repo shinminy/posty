@@ -42,6 +42,16 @@ public class RedisManager {
         return value == null ? null : convertToType(value, clazz);
     }
 
+    // 최초 생성 시에만 TTL(유효기간) 설정하고, 이후 increment 시 TTL 유지
+    public long incrementWithTtlIfAbsent(@NotBlank String key, @NotNull Duration ttl) {
+        Long value = redisTemplate.opsForValue().increment(key);
+
+        if (value != null && value == 1) {
+            redisTemplate.expire(key, ttl);
+        }
+        return value == null ? 0L : value;
+    }
+
     public void saveList(@NotBlank String key, @NotNull List<?> values) {
         if (values.isEmpty()) {
             redisTemplate.opsForList().rightPush(key, EMPTY_PLACEHOLDER);
