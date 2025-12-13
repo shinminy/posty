@@ -14,10 +14,21 @@ security:
 
 time-to-live:
   account-name-cache: 30d
+  verification:
+    rate-limit: 1h
+    code: 5m
+    verified: 1h
+
+verification:
+  max-code-request: 5
 
 pagination:
   default-page: 0
   default-size: 10
+
+mail:
+  from:
+    no-reply: no-reply@posty.com
 
 media:
   file-api-url: ${FILE_API_URL}
