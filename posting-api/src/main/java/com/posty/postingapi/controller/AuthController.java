@@ -48,7 +48,7 @@ public class AuthController {
     @Operation(summary = "액세스 토큰 갱신", description = "액세스 토큰을 새로 발급합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
     @PostMapping("/refresh")
-    public RefreshResponse refresh(@RequestBody RefreshRequest request) {
+    public RefreshResponse refreshAccessToken(@RequestBody RefreshRequest request) {
         return authService.refreshAccessToken(request.refreshToken());
     }
 
