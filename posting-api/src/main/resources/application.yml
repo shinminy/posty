@@ -95,6 +95,14 @@ spring:
     password: ${ACTIVEMQ_PASSWORD}
   jmx:
     enabled: false
+  mail:
+    host: ${MAIL_HOST}
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_APP_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 springdoc:
   packages-to-scan: com.posty.postingapi.controller
