@@ -17,7 +17,6 @@ import java.net.URI;
 
 @Slf4j
 @RestController
-@RequestMapping("/file")
 public class FileController {
 
     private final FileService fileService;

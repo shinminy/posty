@@ -11,3 +11,6 @@ select now();
 SHOW INDEX FROM account; -- Key_name이 인덱스명
 ALTER TABLE account DROP INDEX email;
 ALTER TABLE account DROP INDEX name;
+
+select * from media;
+update media set stored_url = REPLACE(stored_url, '/file/', '/') where stored_url like '%/file/%';
