@@ -146,9 +146,9 @@
 -DKEY_STORE_PASSWORD=
 -DKEY_STORE_TYPE=
 -DKEY_ALIAS=
--Dlogging.config=classpath:log4j2-local.xml
--Duser.language=en
--Duser.timezone=Asia/Seoul
+-Dlogging.config=
+-Duser.language=
+-Duser.timezone=
 ```
 
 * API_TOKEN
