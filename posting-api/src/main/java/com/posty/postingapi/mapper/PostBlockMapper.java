@@ -31,9 +31,8 @@ public class PostBlockMapper {
 
         PostBlock.PostBlockBuilder postBlockBuilder = PostBlock.builder();
 
-        if (request instanceof PostBlockUpdateRequest) {
-            PostBlockUpdateRequest postBlockUpdateRequest = (PostBlockUpdateRequest) request;
-            postBlockBuilder.id(postBlockUpdateRequest.getId());
+        if (request instanceof PostBlockUpdateRequest updateRequest) {
+            postBlockBuilder.id(updateRequest.getId());
         }
 
         postBlockBuilder

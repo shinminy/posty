@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
-@ToString
 public class AccountDeletionSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
