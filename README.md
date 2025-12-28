@@ -43,10 +43,11 @@
 #### posting-api의 VM 옵션 목록
 
 ```
--DFILE_API_URL=http://localhost:12684/file
+-DFILE_API_URL=
 -DFILE_API_TOKEN=
 -DKEY_STORE=
 -DKEY_STORE_PASSWORD=
+-DKEY_STORE_TYPE=
 -DKEY_ALIAS=
 -DDB_URL=
 -DDB_USERNAME=
@@ -57,13 +58,78 @@
 -DACTIVEMQ_PASSWORD=
 -DMAIL_HOST=
 -DMAIL_USERNAME=
--DMAIL_APP_PASSWORD=
--Dlogging.config=classpath:log4j2-local.xml
--Duser.language=en
--Duser.timezone=Asia/Seoul
+-DMAIL_PASSWORD=
+-Dlogging.config=
+-Duser.language=
+-Duser.timezone=
 ```
 
-* **FILE_API_TOKEN** 값은 [file-api의 VM 옵션 목록](#file-api의-VM-옵션-목록)의 **API_TOKEN** 값과 같아야 합니다.
+* FILE_API_URL
+    * file-api에 파일 업로드 및 삭제를 요청하기 위한 주소
+    * 예 : http://localhost:12684/file
+* FILE_API_TOKEN
+    * file-api에 파일 업로드 및 삭제를 요청할 때 필요한 토큰 값
+    * [file-api의 VM 옵션 목록](#file-api의-VM-옵션-목록)의 **API_TOKEN** 값과 같아야 함
+* KEY_STORE
+    * 키스토어 파일
+    * server.ssl.key-store에 들어갈 값
+    * 예 : /posty/config/keystore.p12
+* KEY_STORE_PASSWORD
+    * 키스토어 암호
+    * server.ssl.key-store-password에 들어갈 값
+* DKEY_STORE_TYPE
+    * 키스토어 유형
+    * server.ssl.key-store-type에 들어갈 값
+    * 예 : PKCS12
+* KEY_ALIAS
+    * 키스토어 alias 키
+    * server.ssl.key-alias에 들어갈 값
+* DB_URL
+    * 데이터베이스 주소
+    * spring.datasource.url에 들어갈 값
+    * 예 : jdbc:mariadb://localhost:3306/dbname
+* DB_USERNAME
+    * 데이터베이스 접속 사용자 계정
+    * spring.datasource.username에 들어갈 값
+* DB_PASSWORD
+    * 데이터베이스 접속 사용자 계정의 암호
+    * spring.datasource.password에 들어갈 값
+* REDIS_HOST
+    * Redis 주소
+    * spring.data.redis.host에 들어갈 값
+    * 예 : localhost
+* ACTIVEMQ_BROKER_URL
+    * ActiveMQ 주소
+    * spring.activemq.broker-url에 들어갈 값
+    * 예 : tcp://localhost:61616
+* ACTIVEMQ_USER
+    * ActiveMQ 접속 계정
+    * spring.activemq.user에 들어갈 값
+* ACTIVEMQ_PASSWORD
+    * ActiveMQ 접속 계정의 암호
+    * spring.activemq.password에 들어갈 값
+* MAIL_HOST
+    * SMTP 서버 주소 (메일 인증 시 인증코드를 메일로 보내기 위해 사용)
+    * spring.mail.host에 들어갈 값
+    * 예 : smtp.naver.com
+* MAIL_USERNAME
+    * SMTP 서비스 계정 (메일 인증 시 인증코드를 메일로 보내기 위해 사용)
+    * spring.mail.username에 들어갈 값
+    * 예 : user@naver.com
+* MAIL_PASSWORD
+    * SMTP 서비스 계정의 암호로, 보통 앱 암호 (메일 인증 시 인증코드를 메일로 보내기 위해 사용)
+    * spring.mail.password에 들어갈 값
+* logging.config
+    * 로그 설정 파일
+    * 예 : classpath:log4j2.xml
+* user.language
+    * 기본 Locale 언어 (Validation 기본 안내 메시지에 대한 언어를 설정하기 위해 사용)
+    * spring.web.locale에 들어갈 값
+    * 예 : en
+* user.timezone
+    * 기본 시간대
+    * spring.jackson.time-zone 등에 들어갈 값
+    * 예 : Asia/Seoul
 
 ### file-api
 
@@ -78,10 +144,45 @@
 -DCLAMAV_HOST=
 -DKEY_STORE=
 -DKEY_STORE_PASSWORD=
+-DKEY_STORE_TYPE=
 -DKEY_ALIAS=
 -Dlogging.config=classpath:log4j2-local.xml
 -Duser.language=en
 -Duser.timezone=Asia/Seoul
 ```
 
-* **API_TOKEN** 값은 [posting-api의 VM 옵션 목록](#posting-api의-VM-옵션-목록)의 **FILE_API_TOKEN** 값과 같아야 합니다.
+* API_TOKEN
+    * 파일 업로드 및 삭제를 요청받았을 때 허용된 요청인지 확인하기 위한 토큰 값
+    * [posting-api의 VM 옵션 목록](#posting-api의-VM-옵션-목록)의 **FILE_API_TOKEN** 값과 같아야 함
+* TEMP_PATH
+    * 파일 저장 전에 크기나 바이러스 검사 등을 위해 임시로 저장하는 위치
+    * 예 : /file/temp
+* BASE_PATH
+    * 파일 저장 위치
+    * 예 : /file
+* CLAMAV_HOST
+    * ClamAV 주소
+    * 예 : localhost
+* KEY_STORE
+    * 키스토어 파일
+    * server.ssl.key-store에 들어갈 값
+    * 예 : /posty/config/keystore.p12
+* KEY_STORE_PASSWORD
+    * 키스토어 암호
+    * server.ssl.key-store-password에 들어갈 값
+* DKEY_STORE_TYPE
+    * 키스토어 유형
+    * server.ssl.key-store-type에 들어갈 값
+    * 예 : PKCS12
+* KEY_ALIAS
+    * 키스토어 alias 키
+    * server.ssl.key-alias에 들어갈 값
+* logging.config
+    * 로그 설정 파일
+    * 예 : classpath:log4j2.xml
+* user.language
+    * 기본 Locale 언어
+    * 예 : en
+* user.timezone
+    * 기본 시간대
+    * 예 : Asia/Seoul
