@@ -23,9 +23,9 @@ public class RefreshTokenManager {
         redisManager.saveValueWithTtl(redisKey, accountId, ttl);
     }
 
-    public Long loadAccountIdByRefreshToken(String refreshToken) {
+    public Optional<Long> loadAccountIdByRefreshToken(String refreshToken) {
         String redisKey = createRefreshTokenKey(refreshToken);
-        return redisManager.getValue(redisKey, Long.class);
+        return Optional.ofNullable(redisManager.getValue(redisKey, Long.class));
     }
 
     public void clearRefreshToken(String refreshToken) {
