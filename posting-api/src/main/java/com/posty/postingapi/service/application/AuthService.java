@@ -4,6 +4,7 @@ import com.posty.postingapi.common.formatter.DurationKoreanFormatter;
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.dto.auth.*;
+import com.posty.postingapi.error.InvalidAuthenticationException;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.error.TooManyRequestsException;
 import com.posty.postingapi.error.VerificationFailedException;
@@ -99,7 +100,9 @@ public class AuthService {
     }
 
     public RefreshResponse refreshAccessToken(String refreshToken) {
-        Long accountId = refreshTokenManager.loadAccountIdByRefreshToken(refreshToken);
+        Long accountId = refreshTokenManager.loadAccountIdByRefreshToken(refreshToken)
+                .orElseThrow(InvalidAuthenticationException::new);
+
         Account account = accountRepository.findNonDeletedById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account"));
 

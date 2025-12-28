@@ -61,6 +61,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             VerificationFailedException.class,
+            InvalidAuthenticationException.class,
             ResourceNotFoundException.class,
             DuplicateAccountException.class,
             AccountUpdateNotAllowedException.class,
