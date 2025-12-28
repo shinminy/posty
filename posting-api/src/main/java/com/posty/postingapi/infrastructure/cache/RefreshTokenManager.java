@@ -20,7 +20,7 @@ public class RefreshTokenManager {
 
     public void saveRefreshToken(String refreshToken, Long accountId, Duration ttl) {
         String redisKey = createRefreshTokenKey(refreshToken);
-        redisManager.saveValueWithTtl(redisKey, String.valueOf(accountId), ttl);
+        redisManager.saveValueWithTtl(redisKey, accountId, ttl);
     }
 
     public Long loadAccountIdByRefreshToken(String refreshToken) {
