@@ -56,7 +56,7 @@ server:
     enabled: true
     key-store: ${KEY_STORE}
     key-store-password: ${KEY_STORE_PASSWORD}
-    key-store-type: PKCS12
+    key-store-type: ${KEY_STORE_TYPE}
     key-alias: ${KEY_ALIAS}
   error:
     include-stacktrace: never
@@ -99,7 +99,7 @@ spring:
     host: ${MAIL_HOST}
     port: 587
     username: ${MAIL_USERNAME}
-    password: ${MAIL_APP_PASSWORD}
+    password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
