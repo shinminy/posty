@@ -45,7 +45,7 @@ public class PostBlock {
 
     private String textContent;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "media_id")
     private Media media;
 
