@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
-@ToString
 public class PostBlock {
 
     public static final Sort SORT = Sort.by(Sort.Direction.ASC, "orderNo");
