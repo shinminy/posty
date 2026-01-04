@@ -11,5 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "api")
 public class ApiConfig {
 
+    private String externalUrl;
     private String token;
 }
