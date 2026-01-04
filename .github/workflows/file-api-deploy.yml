@@ -58,6 +58,7 @@ jobs:
     env:
       DEPLOY_USER: ${{ vars.FILEAPI_DEPLOY_USER }}
       HOST: ${{ vars.FILEAPI_SERVER_HOST }}
+      PORT: ${{ vars.FILEAPI_SERVER_PORT }}
       KEY: ${{ secrets.FILEAPI_SERVER_PRIVATE_KEY }}
       PASSPHRASE: ${{ secrets.FILEAPI_SERVER_PRIVATE_KEY_PASSPHRASE }}
       HOME_DIR: ${{ vars.FILEAPI_HOME_DIR }}
@@ -90,6 +91,7 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.HOST }}
+          port: ${{ env.PORT }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
@@ -101,6 +103,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ env.HOST }}
+          port: ${{ env.PORT }}
           username: ${{ env.DEPLOY_USER }}
           key: ${{ env.KEY }}
           passphrase: ${{ env.PASSPHRASE }}
