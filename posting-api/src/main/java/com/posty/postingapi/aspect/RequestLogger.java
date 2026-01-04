@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.UnsupportedEncodingException;
@@ -63,13 +64,20 @@ public class RequestLogger {
                 "\n\n[Request info]\nRequest ID: {}\nRequest Method: {}\nRequest URL: {}\nRequest Params: {}\nClient IP: {}\n{}: {}\nRequest Body: {}\n",
                 requestId,
                 servletRequest.getMethod(),
-                servletRequest.getRequestURL().toString(),
+                getRequestUrl(servletRequest),
                 servletRequest.getParameterMap(),
                 getClientIp(servletRequest),
                 apiProperties.getKeyHeaderName(),
                 servletRequest.getHeader(apiProperties.getKeyHeaderName()),
                 body
         );
+    }
+
+    private String getRequestUrl(HttpServletRequest request) {
+        return ServletUriComponentsBuilder.fromRequest(request)
+                .replaceQuery(null)
+                .build()
+                .toUriString();
     }
 
     private String getClientIp(HttpServletRequest request) {

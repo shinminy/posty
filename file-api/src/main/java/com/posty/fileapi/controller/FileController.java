@@ -61,7 +61,7 @@ public class FileController {
             return ResponseEntity.internalServerError().body(message);
         }
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .pathSegment(fileName)
                 .build()
                 .toUri();
