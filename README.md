@@ -12,9 +12,9 @@
 * Cache: Redis 7
 * Message Broker: ActiveMQ Classic 6.1.7
 * File Security & Validation: Apache Tika 3.2.0, ClamAV 1.4
-* Container: Docker 28 (MariaDB, Redis, ActiveMQ, ClamAV)
+* Container: Docker 29 (MariaDB, Redis, ActiveMQ, ClamAV)
 * Build Tool: Gradle 8.13 (Groovy DSL)
-* Deployment: AWS EC2 (Ubuntu 24.04), systemd, GitHub Actions, Docker Compose 2
+* Deployment: ~~AWS EC2~~ Oracle VirtualBox (Ubuntu 24.04), systemd, GitHub Actions, Docker Compose v2
 * Documentation: Springdoc OpenAPI (Swagger UI)
 
 ### 사용 도구 및 기타
@@ -37,18 +37,14 @@
 
 #### posting-api 관련 페이지
 
-* API 문서 : [Swagger UI](https://localhost:15793/docs/swagger-ui/index.html)
-* ActiveMQ 관리 페이지 : [ActiveMQ Console](https://localhost:8162/admin/index.jsp)
+* API 문서 : [Swagger UI](http://localhost:15793/docs/swagger-ui/index.html)
+* ActiveMQ 관리 페이지 : [ActiveMQ Console](http://localhost:8161/admin/index.jsp)
 
 #### posting-api의 VM 옵션 목록
 
 ```
 -DFILE_API_URL=
 -DFILE_API_TOKEN=
--DKEY_STORE=
--DKEY_STORE_PASSWORD=
--DKEY_STORE_TYPE=
--DKEY_ALIAS=
 -DDB_URL=
 -DDB_USERNAME=
 -DDB_PASSWORD=
@@ -66,24 +62,10 @@
 
 * FILE_API_URL
     * file-api에 파일 업로드 및 삭제를 요청하기 위한 주소
-    * 예 : `http://localhost:12684/file`
+    * 예 : `http://localhost:12684`
 * FILE_API_TOKEN
     * file-api에 파일 업로드 및 삭제를 요청할 때 필요한 토큰 값
     * [file-api의 VM 옵션 목록](#file-api의-VM-옵션-목록)의 **API_TOKEN** 값과 같아야 함
-* KEY_STORE
-    * 키스토어 파일
-    * server.ssl.key-store에 들어갈 값
-    * 예 : `/posty/config/keystore.p12`
-* KEY_STORE_PASSWORD
-    * 키스토어 암호
-    * server.ssl.key-store-password에 들어갈 값
-* DKEY_STORE_TYPE
-    * 키스토어 유형
-    * server.ssl.key-store-type에 들어갈 값
-    * 예 : `PKCS12`
-* KEY_ALIAS
-    * 키스토어 alias 키
-    * server.ssl.key-alias에 들어갈 값
 * DB_URL
     * 데이터베이스 주소
     * spring.datasource.url에 들어갈 값
@@ -142,10 +124,6 @@
 -DTEMP_PATH=
 -DBASE_PATH=
 -DCLAMAV_HOST=
--DKEY_STORE=
--DKEY_STORE_PASSWORD=
--DKEY_STORE_TYPE=
--DKEY_ALIAS=
 -Dlogging.config=
 -Duser.language=
 -Duser.timezone=
@@ -163,20 +141,6 @@
 * CLAMAV_HOST
     * ClamAV 주소
     * 예 : `localhost`
-* KEY_STORE
-    * 키스토어 파일
-    * server.ssl.key-store에 들어갈 값
-    * 예 : `/posty/config/keystore.p12`
-* KEY_STORE_PASSWORD
-    * 키스토어 암호
-    * server.ssl.key-store-password에 들어갈 값
-* DKEY_STORE_TYPE
-    * 키스토어 유형
-    * server.ssl.key-store-type에 들어갈 값
-    * 예 : `PKCS12`
-* KEY_ALIAS
-    * 키스토어 alias 키
-    * server.ssl.key-alias에 들어갈 값
 * logging.config
     * 로그 설정 파일
     * 예 : `classpath:log4j2.xml`
