@@ -37,10 +37,10 @@
 
 서비스 목록은 아래와 같습니다.
 
-* [Posting API (posting-api)](#posting-api-posting-api)
-* [file-api](#file-api)
+* [Posting API](#posting-api)
+* [File API](#file-api)
 
-### Posting API (posting-api)
+### Posting API
 
 포스팅 서비스를 위한 내부 REST API입니다. (현재 문서에 링크된 주소는 개발용 로컬 주소입니다.)
 
@@ -75,7 +75,7 @@
     * 예 : `http://localhost:12684`
   * FILE_API_TOKEN
     * file-api에 파일 업로드 및 삭제를 요청할 때 필요한 토큰 값
-    * [file-api의 VM 옵션 목록](#file-api의-VM-옵션-목록)의 **API_TOKEN** 값과 같아야 함
+    * [JVM Arguments for File API](#jvm-arguments-for-file-api)의 **API_TOKEN** 값과 같아야 함
 * Database
   * DB_URL
     * 데이터베이스 주소
@@ -128,11 +128,11 @@
     * spring.jackson.time-zone 등에 들어갈 값
     * 예 : `Asia/Seoul`
 
-### file-api
+### File API
 
 파일 업로드 및 다운로드를 위한 REST API입니다.
 
-#### file-api의 VM 옵션 목록
+#### JVM Arguments for File API
 
 ```
 -DAPI_EXTERNAL_URL=
