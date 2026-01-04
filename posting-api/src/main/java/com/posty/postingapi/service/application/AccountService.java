@@ -95,7 +95,8 @@ public class AccountService {
 
         String oldName = account.getName();
         String newName = request.getName();
-        if (StringUtils.hasText(newName) && !newName.equalsIgnoreCase(oldName) && accountRepository.existsNonDeletedByName(newName)) {
+        boolean hasNewName = StringUtils.hasText(newName);
+        if (hasNewName && !newName.equalsIgnoreCase(oldName) && accountRepository.existsNonDeletedByName(newName)) {
             throw new DuplicateAccountException(newName);
         }
 
@@ -105,7 +106,7 @@ public class AccountService {
         account.updateProfile(request, hashedPassword);
         accountRepository.save(account);
 
-        if (!newName.equals(oldName)) {
+        if (hasNewName && !newName.equals(oldName)) {
             writerCacheManager.clearAccountName(accountId);
         }
     }
