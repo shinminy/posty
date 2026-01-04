@@ -120,6 +120,7 @@
 #### file-api의 VM 옵션 목록
 
 ```
+-DAPI_EXTERNAL_URL=
 -DAPI_TOKEN=
 -DTEMP_PATH=
 -DBASE_PATH=
@@ -129,6 +130,9 @@
 -Duser.timezone=
 ```
 
+* API_EXTERNAL_URL
+    * 외부 호출용 URL (파일 업로드 후 파일의 URL을 응답할 때 들어가는 외부 주소)
+    * 예 : `http://localhost:12684`
 * API_TOKEN
     * 파일 업로드 및 삭제를 요청받았을 때 허용된 요청인지 확인하기 위한 토큰 값
     * [posting-api의 VM 옵션 목록](#posting-api의-VM-옵션-목록)의 **FILE_API_TOKEN** 값과 같아야 함

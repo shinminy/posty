@@ -3,6 +3,7 @@ package com.posty.fileapi.controller;
 import com.posty.common.dto.FileUploadRequest;
 import com.posty.common.dto.FileUploadResponse;
 import com.posty.fileapi.dto.FileData;
+import com.posty.fileapi.properties.ApiConfig;
 import com.posty.fileapi.service.FileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -21,8 +22,12 @@ public class FileController {
 
     private final FileService fileService;
 
-    public FileController(FileService fileService) {
+    private final String externalUrl;
+
+    public FileController(FileService fileService, ApiConfig apiConfig) {
         this.fileService = fileService;
+
+        externalUrl = apiConfig.getExternalUrl();
     }
 
     @GetMapping("/{fileName}")
@@ -61,7 +66,8 @@ public class FileController {
             return ResponseEntity.internalServerError().body(message);
         }
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
+        URI location = ServletUriComponentsBuilder
+                .fromUriString(externalUrl)
                 .pathSegment(fileName)
                 .build()
                 .toUri();

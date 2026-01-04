@@ -1,4 +1,5 @@
 api:
+  external-url: ${API_EXTERNAL_URL}
   token: ${API_TOKEN}
 
 directory:
