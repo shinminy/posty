@@ -53,7 +53,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: "${{ env.SERVICE_NAME }} Test Results #${{ github.run_number }}"
+          name: "${{ env.SERVICE_NAME }} Test Results #${{ github.run_id }}"
           path: ${{ env.SERVICE_NAME }}/build/test-results/test/*.xml
           reporter: java-junit
 
