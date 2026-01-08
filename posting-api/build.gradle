@@ -52,6 +52,7 @@ dependencies {
     annotationProcessor "com.querydsl:querydsl-apt:${rootProject.ext.queryDslVersion}:jakarta"
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+    testImplementation 'com.h2database:h2'
 
     implementation 'commons-codec:commons-codec'
 
@@ -86,10 +87,4 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-test {
-    systemProperty 'DB_URL', System.getProperty('DB_URL')
-    systemProperty 'DB_USERNAME', System.getProperty('DB_USERNAME')
-    systemProperty 'DB_PASSWORD', System.getProperty('DB_PASSWORD')
 }
