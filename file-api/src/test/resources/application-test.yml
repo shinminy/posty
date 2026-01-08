@@ -1,0 +1,32 @@
+api:
+  external-url: https://example.com
+  token: test-token
+
+directory:
+  temp: /tmp
+  base: /tmp/base
+
+download:
+  connect-timeout: 1000
+  read-timeout: 2000
+
+validation:
+  max-size: 10
+
+clamav:
+  host: localhost
+  port: 3310
+
+server:
+  port: 0 # 0으로 두면 랜덤 포트 사용
+  forward-headers-strategy: framework
+  ssl:
+    enabled: false
+  error:
+    include-stacktrace: never
+
+spring:
+  application:
+    name: file-api
+  jmx:
+    enabled: false

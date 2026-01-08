@@ -17,6 +17,9 @@ jobs:
   build:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
     env:
       DEPENDENCY_MODULE: :common:clean :common:build
 
@@ -44,7 +47,15 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build ${{ env.SERVICE_NAME }} module
-        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:build -x test
+        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:build
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: ${{ env.SERVICE_NAME }} Test Results
+          path: ${{ env.SERVICE_NAME }}/build/test-results/test/*.xml
+          reporter: java-junit
 
       - name: Upload ${{ env.SERVICE_NAME }} JAR artifact
         uses: actions/upload-artifact@v4

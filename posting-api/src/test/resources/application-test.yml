@@ -1,0 +1,116 @@
+time:
+  zone-id: Asia/Seoul
+
+api:
+  request-id-name: X-Request-ID
+  key-header-name: X-API-KEY
+  xff-header-name: X-Forwarded-For
+  auth-type-key: authType
+
+security:
+  jwt:
+    access-expiry: 10m
+    refresh-expiry: 1d
+
+time-to-live:
+  account-name-cache: 30d
+  verification:
+    rate-limit: 1h
+    code: 5m
+    verified: 1h
+
+verification:
+  max-code-request: 5
+
+pagination:
+  default-page: 0
+  default-size: 10
+
+mail:
+  from:
+    no-reply: no-reply@posty.com
+
+media:
+  file-api-url: https://example.com
+  file-api-token: test-token
+  upload-queue-name: media-upload-queue
+  delete-queue-name: media-delete-queue
+
+scheduler:
+  account:
+    deletion:
+      grace-period-days: 1
+      cron: "0 5 11 * * *"
+  media:
+    retry:
+      upload:
+        max-attempt-count: 2
+        cron: "0 15 0/3 * * *"
+      delete:
+        max-attempt-count: 2
+        cron: "0 45 1,4,7,10,13,16,19,22 * * *"
+
+server:
+  port: 0 # 랜덤 포트
+  forward-headers-strategy: framework
+  ssl:
+    enabled: false
+  error:
+    include-stacktrace: never
+
+spring:
+  application:
+    name: posting-api
+  jackson:
+    time-zone: Asia/Seoul
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MariaDB;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  task:
+    scheduling:
+      pool:
+        size: 2
+  web:
+    locale: en
+    locale-resolver: fixed
+  activemq:
+    broker-url: tcp://localhost
+    user: user
+    password: password
+  jmx:
+    enabled: false
+  mail:
+    host: smtp.server.com
+    port: 587
+    username: username
+    password: password
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+springdoc:
+  packages-to-scan: com.posty.postingapi.controller
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  api-docs:
+    path: /docs/api-docs
+  swagger-ui:
+    path: /docs/swagger-ui
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+  override-with-generic-response: false

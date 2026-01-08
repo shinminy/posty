@@ -77,7 +77,7 @@ public class CommentController {
 
     @Operation(summary = "포스트의 댓글 목록 조회", description = "해당 포스트의 댓글들을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
-    @GetMapping("/comments/posts/{postId}")
+    @GetMapping("/comments/post/{postId}")
     public Page<CommentDetailResponse> getCommentsByPost(
             @PathVariable Long postId,
             @ParameterObject @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
