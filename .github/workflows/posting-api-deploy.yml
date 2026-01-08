@@ -47,7 +47,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build ${{ env.SERVICE_NAME }} module
-        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:build
+        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:build -x test && ./gradlew :${{ env.SERVICE_NAME }}:test
 
       - name: Test Report
         uses: dorny/test-reporter@v1
