@@ -100,7 +100,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-24.04
-    needs: build
+    needs: test
     env:
       DEPLOY_USER: ${{ vars.POSTINGAPI_DEPLOY_USER }}
       HOST: ${{ vars.POSTINGAPI_SERVER_HOST }}
