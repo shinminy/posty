@@ -17,11 +17,8 @@ jobs:
   build:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      checks: write
     env:
-      DEPENDENCY_MODULE: :common:clean :common:build
+      DEPENDENCY_MODULE: :common:clean :common:assemble
 
     steps:
       - name: Checkout code
@@ -47,21 +44,59 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build ${{ env.SERVICE_NAME }} module
-        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:build
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: "${{ env.SERVICE_NAME }} Test Results #${{ github.run_id }}"
-          path: ${{ env.SERVICE_NAME }}/build/test-results/test/*.xml
-          reporter: java-junit
+        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:clean :${{ env.SERVICE_NAME }}:assemble
 
       - name: Upload ${{ env.SERVICE_NAME }} JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.SERVICE_NAME }}-jar
           path: ${{ env.SERVICE_NAME }}/build/*.jar
+
+  test:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+    env:
+      DEPENDENCY_MODULE: :common:test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Download ${{ env.SERVICE_NAME }} JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.SERVICE_NAME }}-jar
+          path: ${{ env.SERVICE_NAME }}/build
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew ${{ env.DEPENDENCY_MODULE }} :${{ env.SERVICE_NAME }}:test
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SERVICE_NAME }}-test-results
+          path: ${{ env.SERVICE_NAME }}/build/test-results/test/*.xml
+
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          artifact: ${{ env.SERVICE_NAME }}-test-results
+          name: ${{ env.SERVICE_NAME }} Test Results
+          path: '*.xml'
+          reporter: java-junit
 
   deploy:
     runs-on: ubuntu-24.04
@@ -123,11 +158,12 @@ jobs:
             cd ${{ env.HOME_DIR }}
             ln -sf jars/${{ env.JAR_FILENAME }} ${{ env.SERVICE_NAME }}
             echo "📌 Creating symlink..."
-            if [ ! -L ${{ env.SERVICE_NAME }} ]; then
+            if [ -L ${{ env.SERVICE_NAME }} ]; then
+              echo "✅ Symlink created successfully"
+            else
               echo "❌ Symlink creation failed"
               exit 1
             fi
-              echo "✅ Symlink created successfully"
             echo "📌 Restarting service..."
             if sudo systemctl restart ${{ env.SERVICE_NAME }}.service; then
               echo "✅ Service restarted"
