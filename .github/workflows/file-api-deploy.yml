@@ -100,7 +100,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-24.04
-    needs: build
+    needs: test
     env:
       DEPLOY_USER: ${{ vars.FILEAPI_DEPLOY_USER }}
       HOST: ${{ vars.FILEAPI_SERVER_HOST }}
