@@ -1,5 +1,6 @@
 package com.posty.postingapi.dto.account;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -21,6 +22,7 @@ public class AccountCreateRequest {
 
     @NotBlank
     @Size(min = 10, max = 128)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ToString.Exclude
     private String password;
 

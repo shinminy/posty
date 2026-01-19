@@ -1,5 +1,6 @@
 package com.posty.postingapi.dto.account;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.ToString;
 public class AccountUpdateRequest {
 
     @Size(min = 10, max = 128)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ToString.Exclude
     private String password;
 

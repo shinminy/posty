@@ -25,6 +25,7 @@ public class SchedulerProperties {
         public static class AccountDeletionProperties {
 
             private int gracePeriodDays;
+            private int batchSize;
         }
     }
 

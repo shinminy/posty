@@ -8,15 +8,9 @@ public enum ScheduleStatus {
     FAILED;
 
     public boolean canReschedule() {
-        switch (this) {
-            case CANCELLED:
-            case FAILED:
-                return true;
-            case SCHEDULED:
-            case IN_PROGRESS:
-            case COMPLETED:
-            default:
-                return false;
-        }
+        return switch (this) {
+            case CANCELLED, FAILED -> true;
+            default -> false;
+        };
     }
 }

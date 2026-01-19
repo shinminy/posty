@@ -41,6 +41,7 @@ scheduler:
     deletion:
       grace-period-days: 1
       cron: "0 5 11 * * *"
+      batch-size: 50
   media:
     retry:
       upload:

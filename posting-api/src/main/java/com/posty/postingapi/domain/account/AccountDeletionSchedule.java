@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Getter
 public class AccountDeletionSchedule {
     @Id
@@ -39,6 +37,22 @@ public class AccountDeletionSchedule {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    public static AccountDeletionSchedule create(Account account, LocalDateTime scheduledAt) {
+        return AccountDeletionSchedule.builder()
+                .account(account)
+                .status(ScheduleStatus.SCHEDULED)
+                .scheduledAt(scheduledAt)
+                .build();
+    }
+
+    @Builder
+    private AccountDeletionSchedule(Long id, Account account, ScheduleStatus status, LocalDateTime scheduledAt) {
+        this.id = id;
+        this.account = account;
+        this.status = status;
+        this.scheduledAt = scheduledAt;
+    }
+
     public void markInProgress() {
         status = ScheduleStatus.IN_PROGRESS;
     }
@@ -49,5 +63,9 @@ public class AccountDeletionSchedule {
         }
 
         status = ScheduleStatus.COMPLETED;
+    }
+
+    public void markFailed() {
+        status = ScheduleStatus.FAILED;
     }
 }

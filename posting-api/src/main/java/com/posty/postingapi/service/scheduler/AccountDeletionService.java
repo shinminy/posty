@@ -6,6 +6,9 @@ import com.posty.postingapi.domain.account.AccountDeletionScheduleRepository;
 import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.posty.postingapi.domain.series.Series;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,7 +16,6 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,45 +36,45 @@ public class AccountDeletionService {
     }
 
     @Transactional
-    public void markAccountsDeletionInProgress() {
+    public List<Long> markAccountsDeletionInProgress() {
         LocalDateTime now = LocalDateTime.now(clock);
-
         List<AccountDeletionSchedule> schedules = accountDeletionScheduleRepository.findScheduledBefore(now);
-        if (schedules.isEmpty()) {
-            log.info("No accounts for deletion.");
-            return;
-        }
 
         schedules.forEach(AccountDeletionSchedule::markInProgress);
 
-        log.info("{} account deletion schedules marked as IN_PROGRESS. IDs: {}", schedules.size(),
-                schedules.stream().map(AccountDeletionSchedule::getId).map(String::valueOf).collect(Collectors.joining(",")));
+        return schedules.stream()
+                .map(AccountDeletionSchedule::getId)
+                .toList();
     }
 
     @Transactional
-    public void processAccountsDeletion() {
-        LocalDateTime now = LocalDateTime.now(clock);
+    public List<Long> processDeletionSchedules(int batchSize) {
+        final LocalDateTime now = LocalDateTime.now(clock);
 
-        List<AccountDeletionSchedule> schedules = accountDeletionScheduleRepository.findAllByStatus(ScheduleStatus.IN_PROGRESS);
-        if (schedules.isEmpty()) {
-            log.info("No accounts for deletion (IN_PROGRESS).");
-            return;
+        Slice<AccountDeletionSchedule> schedules = accountDeletionScheduleRepository.findAllByStatus(
+                ScheduleStatus.IN_PROGRESS,
+                PageRequest.of(0, batchSize, Sort.by("id").ascending())
+        );
+
+        List<Long> accountIds = new ArrayList<>();
+        for(AccountDeletionSchedule schedule : schedules) {
+            try {
+                Account account = schedule.getAccount();
+
+                List<Series> copiedSeries = new ArrayList<>(account.getManagedSeries());
+                copiedSeries.forEach(account::removeManagedSeries);
+
+                account.markDeleted(now);
+                schedule.markCompleted(account);
+
+                accountIds.add(account.getId());
+            } catch(Exception e) {
+                log.error("Error processing accounts deletion schedule (ID: {})", schedule.getId(), e);
+                schedule.markFailed();
+
+            }
         }
 
-        List<Account> accounts = new ArrayList<>();
-        schedules.forEach(schedule -> {
-            Account account = schedule.getAccount();
-
-            List<Series> copiedSeries = new ArrayList<>(account.getManagedSeries());
-            copiedSeries.forEach(account::removeManagedSeries);
-
-            account.markDeleted(now);
-            schedule.markCompleted(account);
-
-            accounts.add(account);
-        });
-
-        log.info("{} accounts soft-deleted. IDs: {}", accounts.size(),
-                accounts.stream().map(Account::getId).map(String::valueOf).collect(Collectors.joining(",")));
+        return accountIds;
     }
 }
