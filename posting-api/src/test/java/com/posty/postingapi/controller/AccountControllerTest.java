@@ -1,5 +1,6 @@
 package com.posty.postingapi.controller;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posty.postingapi.dto.account.AccountCreateRequest;
 import com.posty.postingapi.dto.account.AccountDeleteResponse;
@@ -70,10 +71,13 @@ class AccountControllerTest {
         );
         given(accountService.createAccount(any(AccountCreateRequest.class))).willReturn(response);
 
+        ObjectMapper testMapper = objectMapper.copy();
+        testMapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+
         // when & then
         mockMvc.perform(post("/account")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(testMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("new@example.com"));
     }
