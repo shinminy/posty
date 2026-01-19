@@ -3,6 +3,9 @@ package com.posty.postingapi.service.application;
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.domain.comment.CommentRepository;
+import com.posty.postingapi.domain.post.event.MediaChangedEvent;
+import com.posty.postingapi.domain.post.event.PostChangedEvent;
+import com.posty.postingapi.domain.series.event.SeriesChangedEvent;
 import com.posty.postingapi.dto.post.*;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.domain.post.*;
@@ -11,19 +14,18 @@ import com.posty.postingapi.domain.series.SeriesRepository;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostBlockMapper;
 import com.posty.postingapi.mapper.PostMapper;
-import com.posty.postingapi.mq.MediaEventPublisher;
 import com.posty.postingapi.properties.PaginationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class PostService {
 
     private final PostRepository postRepository;
@@ -32,10 +34,11 @@ public class PostService {
     private final AccountRepository accountRepository;
     private final CommentRepository commentRepository;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     private final WriterCacheManager writerCacheManager;
 
     private final MediaService mediaService;
-    private final MediaEventPublisher mediaEventPublisher;
 
     private final int defaultPage;
     private final int defaultPageSize;
@@ -46,9 +49,9 @@ public class PostService {
             SeriesRepository seriesRepository,
             AccountRepository accountRepository,
             CommentRepository commentRepository,
+            ApplicationEventPublisher applicationEventPublisher,
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
-            MediaEventPublisher mediaEventPublisher,
             PaginationProperties paginationProperties
     ) {
         this.postRepository = postRepository;
@@ -57,10 +60,11 @@ public class PostService {
         this.accountRepository = accountRepository;
         this.commentRepository = commentRepository;
 
+        this.applicationEventPublisher = applicationEventPublisher;
+
         this.writerCacheManager = writerCacheManager;
 
         this.mediaService = mediaService;
-        this.mediaEventPublisher = mediaEventPublisher;
 
         defaultPage = paginationProperties.getDefaultPage();
         defaultPageSize = paginationProperties.getDefaultSize();
@@ -71,61 +75,14 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post", postId));
     }
 
+    private Series findSeriesById(Long seriesId) {
+        return seriesRepository.findById(seriesId)
+                .orElseThrow(() -> new ResourceNotFoundException("Series", seriesId));
+    }
+
     private Account findWriterById(Long accountId) {
         return accountRepository.findNonDeletedById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Writer", accountId));
-    }
-
-    public PostDetailResponse getPostDetail(Long postId, int page, int size) {
-        Post post = findPostById(postId);
-
-        List<String> writers = writerCacheManager.loadWritersOfPosts(postId);
-
-        PageRequest pageable = PageRequest.of(page, size, PostBlock.SORT);
-        Page<PostBlock> blockData = postBlockRepository.findAllByPostId(postId, pageable);
-        Page<PostBlockResponse> blocks = blockData.map(PostBlockMapper::toPostBlockResponse);
-
-        return PostMapper.toPostDetailResponse(post, writers, blocks);
-    }
-
-    public PostDetailResponse createPost(PostCreateRequest request) {
-        Long seriesId = request.getSeriesId();
-        Series series = seriesRepository.findById(seriesId)
-                .orElseThrow(() -> new ResourceNotFoundException("Series", seriesId));
-
-        request.normalize();
-
-        Post post = PostMapper.toEntity(request, series);
-
-        List<String> writers = new ArrayList<>();
-        createPostBlocks(post, request.getBlocks(), writers);
-
-        Post saved = postRepository.save(post);
-
-        saved.getBlocks().stream()
-                .filter(block -> block.getContentType() == ContentType.MEDIA)
-                .map(PostBlock::getMedia)
-                .forEach(mediaEventPublisher::publishMediaUpload);
-
-        List<String> sortedWriters = writers.stream().distinct().sorted().toList();
-
-        List<PostBlock> blockData = saved.getBlocks();
-        List<PostBlockResponse> blockResponseList = blockData.stream()
-                .sorted(Comparator.comparing(PostBlock::getOrderNo))
-                .limit(defaultPageSize)
-                .map(PostBlockMapper::toPostBlockResponse)
-                .toList();
-        Page<PostBlockResponse> blocks = new PageImpl<>(
-                blockResponseList,
-                PageRequest.of(defaultPage, defaultPageSize, PostBlock.SORT),
-                blockData.size()
-        );
-
-        return PostMapper.toPostDetailResponse(saved, sortedWriters, blocks);
-    }
-
-    private void createPostBlocks(Post post, List<PostBlockCreateRequest> blockRequests) {
-        createPostBlocks(post, blockRequests, null);
     }
 
     private void createPostBlocks(Post post, List<PostBlockCreateRequest> blockRequests, List<String> writers) {
@@ -146,32 +103,117 @@ public class PostService {
         }
     }
 
-    public void updatePost(Long postId, PostUpdateRequest request) {
-        Post post = findPostById(postId);
-
-        request.normalize();
-
-        Map<Long, Media> oldMediaMap = post.getBlocks().stream()
+    private List<Media> extractMediaFromBlocks(List<PostBlock> postBlockList) {
+        return postBlockList.stream()
                 .filter(block -> block.getContentType() == ContentType.MEDIA)
                 .map(PostBlock::getMedia)
-                .collect(Collectors.toMap(Media::getId, Function.identity()));
+                .toList();
+    }
+
+    private void publishMediaCreatedEvents(List<Media> mediaList) {
+        mediaList.stream()
+                .map(media -> new MediaChangedEvent(
+                        media.getId(),
+                        MediaChangedEvent.MediaChangeType.CREATED
+                ))
+                .forEach(applicationEventPublisher::publishEvent);
+    }
+
+    private void publishMediaDeletedEvents(List<Media> mediaList) {
+        mediaList.stream()
+                .map(media -> new MediaChangedEvent(
+                        media.getId(),
+                        MediaChangedEvent.MediaChangeType.DELETED
+                ))
+                .forEach(applicationEventPublisher::publishEvent);
+    }
+
+    private void deleteMediaAndPublishEvents(List<Media> mediaList) {
+        List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
+        publishMediaDeletedEvents(waitingMediaList);
+    }
+
+    public PostDetailResponse getPostDetail(Long postId, int page, int size) {
+        Post post = findPostById(postId);
+
+        List<String> writers = writerCacheManager.loadWritersOfPosts(postId);
+
+        PageRequest pageable = PageRequest.of(page, size, PostBlock.SORT);
+        Page<PostBlockResponse> blocks = postBlockRepository.findAllByPostId(postId, pageable)
+                .map(PostBlockMapper::toPostBlockResponse);
+
+        return PostMapper.toPostDetailResponse(post, writers, blocks);
+    }
+
+    @Transactional
+    public PostDetailResponse createPost(PostCreateRequest request) {
+        Long seriesId = request.getSeriesId();
+        Series series = findSeriesById(seriesId);
+        request.normalize();
+
+        Post post = PostMapper.toEntity(request, series);
+        List<String> writers = new ArrayList<>();
+        createPostBlocks(post, request.getBlocks(), writers);
+
+        Post saved = postRepository.save(post);
+
+        List<PostBlock> blocks = saved.getBlocks();
+        List<Media> mediaList = extractMediaFromBlocks(blocks);
+
+        applicationEventPublisher.publishEvent(new SeriesChangedEvent(seriesId));
+        publishMediaCreatedEvents(mediaList);
+
+        return PostMapper.toPostDetailResponse(
+                saved,
+                sortAndDistinctWriters(writers),
+                getInitialBlockPage(blocks)
+        );
+    }
+
+    private List<String> sortAndDistinctWriters(List<String> writers) {
+        return writers.stream()
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    private Page<PostBlockResponse> getInitialBlockPage(List<PostBlock> postBlockList) {
+        List<PostBlockResponse> blockResponseList = postBlockList.stream()
+                .sorted(Comparator.comparing(PostBlock::getOrderNo))
+                .limit(defaultPageSize)
+                .map(PostBlockMapper::toPostBlockResponse)
+                .toList();
+
+        return new PageImpl<>(
+                blockResponseList,
+                PageRequest.of(defaultPage, defaultPageSize, PostBlock.SORT),
+                postBlockList.size()
+        );
+    }
+
+    @Transactional
+    public void updatePost(Long postId, PostUpdateRequest request) {
+        Post post = findPostById(postId);
+        request.normalize();
+
+        List<Media> oldMediaList = extractMediaFromBlocks(post.getBlocks());
 
         post.updateTitle(request.getTitle());
 
         createPostBlocks(post, request.getNewBlocks());
         updatePostBlocks(post, request.getUpdatedBlocks());
-        deletePostBlocks(request.getDeletedBlockIds());
+        deletePostBlocks(post, request.getDeletedBlockIds());
 
-        Post saved = postRepository.save(post);
+        postRepository.save(post);
 
-        writerCacheManager.clearWritersOfPosts(postId, post.getSeries().getId());
+        List<Media> newMediaList = extractMediaFromBlocks(post.getBlocks());
 
-        Map<Long, Media> newMediaMap = saved.getBlocks().stream()
-                .filter(block -> block.getContentType() == ContentType.MEDIA)
-                .map(PostBlock::getMedia)
-                .collect(Collectors.toMap(Media::getId, Function.identity()));
+        applicationEventPublisher.publishEvent(new PostChangedEvent(postId, post.getSeries().getId()));
+        handleMediaChanges(oldMediaList, newMediaList);
+    }
 
-        processMedia(oldMediaMap, newMediaMap);
+    private void createPostBlocks(Post post, List<PostBlockCreateRequest> blockRequests) {
+        createPostBlocks(post, blockRequests, null);
     }
 
     private void updatePostBlocks(Post post, List<PostBlockUpdateRequest> blockRequests) {
@@ -198,43 +240,40 @@ public class PostService {
 
             block.updateMeta(temp.getOrderNo(), writer);
             if (!block.hasSameContent(temp)) {
-                applyContentChange(block, temp);
+                if (temp.getContentType() == ContentType.TEXT) {
+                    block.updateContentAsText(temp.getTextContent());
+                } else {
+                    block.updateContentAsMedia(temp.getMedia());
+                }
             }
         }
     }
 
-    private void applyContentChange(PostBlock target, PostBlock source) {
-        if (source.getContentType() == ContentType.TEXT) {
-            target.updateContentAsText(source.getTextContent());
-        } else {
-            target.updateContentAsMedia(source.getMedia());
-        }
-    }
-
-    private void deletePostBlocks(List<Long> postBlockIds) {
+    private void deletePostBlocks(Post post, List<Long> postBlockIds) {
         if (postBlockIds == null || postBlockIds.isEmpty()) {
             return;
         }
 
-        postBlockRepository.deleteAllByIdInBatch(postBlockIds);
+        post.removeBlocks(postBlockIds);
     }
 
-    private void processMedia(Map<Long, Media> oldMedia, Map<Long, Media> newMedia) {
-        newMedia.values().stream()
-                .filter(media -> !oldMedia.containsKey(media.getId()))
-                .forEach(mediaEventPublisher::publishMediaUpload);
+    private void handleMediaChanges(List<Media> oldMedia, List<Media> newMedia) {
+        Set<Long> newMediaIds = newMedia.stream().map(Media::getId).collect(Collectors.toSet());
+        Set<Long> oldMediaIds = oldMedia.stream().map(Media::getId).collect(Collectors.toSet());
 
-        List<Media> deletedMediaList = oldMedia.values().stream()
-                .filter(media -> !newMedia.containsKey(media.getId()))
+        List<Media> created = newMedia.stream()
+                .filter(newItem -> !oldMediaIds.contains(newItem.getId()))
                 .toList();
-        requestToDeleteMediaList(deletedMediaList);
+
+        List<Media> deleted = oldMedia.stream()
+                .filter(oldItem -> !newMediaIds.contains(oldItem.getId()))
+                .toList();
+
+        publishMediaCreatedEvents(created);
+        deleteMediaAndPublishEvents(deleted);
     }
 
-    private void requestToDeleteMediaList(List<Media> mediaList) {
-        List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
-        waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);
-    }
-
+    @Transactional
     public void deletePost(Long postId) {
         Post post = findPostById(postId);
 
@@ -243,9 +282,8 @@ public class PostService {
         commentRepository.deleteAllByPostId(postId);
         postRepository.delete(post);
 
-        writerCacheManager.clearWritersOfPosts(postId, post.getSeries().getId());
-
-        requestToDeleteMediaList(mediaList);
+        applicationEventPublisher.publishEvent(new PostChangedEvent(postId, post.getSeries().getId()));
+        deleteMediaAndPublishEvents(mediaList);
     }
 
     public Page<PostSummary> getPostsByWriter(Long accountId, Pageable pageable) {

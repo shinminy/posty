@@ -18,6 +18,7 @@ import com.posty.postingapi.security.jwt.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -71,6 +72,7 @@ public class AuthService {
         emailVerificationTemplate = new MailTemplate(originEmailTemplate.subject(), emailBody);
     }
 
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         request.normalize();
 

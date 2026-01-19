@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 
 @Slf4j
 @Component
@@ -18,15 +20,21 @@ public class MediaScheduler {
 
     @Scheduled(cron = "${scheduler.media.retry.upload.cron}")
     public void runMediaUploadRetry() {
-        log.info("Media upload retry scheduler started...");
-        mediaRetryService.retryFailedUploads();
-        log.info("Media upload retry scheduler finished!");
+        List<Long> mediaIds = mediaRetryService.retryFailedUploads();
+
+        log.info("{} media upload retry completed.", mediaIds.size());
+        if (!mediaIds.isEmpty()) {
+            log.debug("Re-published IDs: {}", mediaIds);
+        }
     }
 
     @Scheduled(cron = "${scheduler.media.retry.delete.cron}")
     public void runMediaDeletionRetry() {
-        log.info("Media deletion retry scheduler started...");
-        mediaRetryService.retryFailedDeletions();
-        log.info("Media deletion retry scheduler finished!");
+        List<Long> mediaIds = mediaRetryService.retryFailedDeletions();
+
+        log.info("{} media deletion retry completed.", mediaIds.size());
+        if (!mediaIds.isEmpty()) {
+            log.debug("Re-published IDs: {}", mediaIds);
+        }
     }
 }

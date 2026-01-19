@@ -6,9 +6,7 @@ import com.posty.common.dto.FileUploadResponse;
 import com.posty.postingapi.domain.post.Media;
 import com.posty.postingapi.domain.post.MediaRepository;
 import com.posty.postingapi.domain.post.MediaStatus;
-import com.posty.postingapi.domain.post.PostBlockRepository;
 import com.posty.postingapi.infrastructure.file.FileApiClient;
-import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 import org.springframework.stereotype.Service;
@@ -16,12 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class MediaService {
 
     private final MediaRepository mediaRepository;
@@ -29,8 +27,6 @@ public class MediaService {
     private final Clock clock;
 
     public MediaService(
-            EntityManager entityManager,
-            PostBlockRepository postBlockRepository,
             MediaRepository mediaRepository,
             FileApiClient fileApiClient,
             Clock clock
@@ -48,14 +44,16 @@ public class MediaService {
 
     @Transactional
     public List<Media> prepareMediaForUpload(List<Media> mediaList) {
-        if (mediaList.isEmpty()) {
-            return mediaList;
+        List<Media> toRetry = mediaList.stream()
+                .filter(media -> media.getStatus() == MediaStatus.UPLOAD_FAILED)
+                .toList();
+
+        if (toRetry.isEmpty()) {
+            return List.of();
         }
 
-        return mediaList.stream()
-                .filter(media -> media.getStatus() == MediaStatus.UPLOAD_FAILED)
-                .peek(Media::waitingUpload)
-                .toList();
+        toRetry.forEach(Media::waitingUpload);
+        return mediaRepository.saveAll(toRetry);
     }
 
     @Transactional
@@ -70,27 +68,36 @@ public class MediaService {
             return mediaList;
         }
 
-        Map<Boolean, List<Media>> partitioned = mediaList.stream()
-                .filter(media -> media.getStatus() != MediaStatus.WAITING_DELETION)
-                .collect(Collectors.partitioningBy(media -> {
-                    MediaStatus status = media.getStatus();
-                    return status == MediaStatus.WAITING_UPLOAD || status == MediaStatus.UPLOAD_FAILED;
-                }));
+        List<Media> toDelete = new ArrayList<>();
+        List<Media> toRetry = new ArrayList<>();
 
-        List<Media> deletableList = partitioned.get(true);
+        for (Media media : mediaList) {
+            if (media.getStatus() == MediaStatus.WAITING_DELETION) {
+                continue;
+            }
 
-        if (!deletableList.isEmpty()) {
-            mediaRepository.deleteAll(deletableList);
+            if (isDeletableImmediately(media)) {
+                toDelete.add(media);
+            } else {
+                media.waitingDeletion();
+                toRetry.add(media);
+            }
         }
 
-        List<Media> waitingList = partitioned.get(false);
-        if (waitingList.isEmpty()) {
-            return waitingList;
+        if (!toDelete.isEmpty()) {
+            mediaRepository.deleteAll(toDelete);
         }
 
-        waitingList.forEach(Media::waitingDeletion);
+        if (toRetry.isEmpty()) {
+            return toRetry;
+        }
 
-        return waitingList;
+        return mediaRepository.saveAll(toRetry);
+    }
+
+    private boolean isDeletableImmediately(Media media) {
+        MediaStatus status = media.getStatus();
+        return status == MediaStatus.WAITING_UPLOAD || status == MediaStatus.UPLOAD_FAILED;
     }
 
     public List<Media> findMediaBySeriesId(long seriesId) {
@@ -137,10 +144,12 @@ public class MediaService {
 
     private void successToUploadMedia(Media media, String storedUrl, String storedFilename) {
         media.uploaded(storedUrl, storedFilename, LocalDateTime.now(clock));
+        mediaRepository.save(media);
     }
 
     private void failToUploadMedia(Media media) {
         media.uploadFailed(LocalDateTime.now(clock));
+        mediaRepository.save(media);
     }
 
     @Transactional
@@ -185,5 +194,6 @@ public class MediaService {
 
     private void failToDeleteMedia(Media media) {
         media.deletionFailed(LocalDateTime.now(clock));
+        mediaRepository.save(media);
     }
 }

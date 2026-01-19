@@ -18,8 +18,10 @@ import com.posty.postingapi.mapper.PostMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class CommentService {
 
     private final CommentRepository commentRepository;
@@ -54,36 +56,40 @@ public class CommentService {
     public CommentDetailResponse getCommentDetail(Long commentId) {
         Comment comment = findCommentById(commentId);
 
-        PostSummary post = PostMapper.toPostSummary(comment.getPost());
-        AccountSummary writer = AccountMapper.toAccountSummary(comment.getWriter());
-
-        return CommentMapper.toCommentDetailResponse(comment, post, writer);
+        return CommentMapper.toCommentDetailResponse(
+                comment,
+                PostMapper.toPostSummary(comment.getPost()),
+                AccountMapper.toAccountSummary(comment.getWriter())
+        );
     }
 
+    @Transactional
     public CommentDetailResponse createComment(CommentCreateRequest request) {
         request.normalize();
 
         Post post = findPostById(request.getPostId());
         Account writer = findAccountById(request.getWriterId());
+
         Comment comment = CommentMapper.toEntity(request, post, writer);
-        commentRepository.save(comment);
+        Comment saved = commentRepository.save(comment);
 
         return CommentMapper.toCommentDetailResponse(
-                comment,
+                saved,
                 PostMapper.toPostSummary(post),
                 AccountMapper.toAccountSummary(writer)
         );
     }
 
+    @Transactional
     public void updateComment(Long commentId, CommentUpdateRequest request) {
         Comment comment = findCommentById(commentId);
-
         request.normalize();
 
         comment.updateContent(request.getContent());
         commentRepository.save(comment);
     }
 
+    @Transactional
     public void deleteComment(Long commentId) {
         Comment comment = findCommentById(commentId);
         commentRepository.delete(comment);

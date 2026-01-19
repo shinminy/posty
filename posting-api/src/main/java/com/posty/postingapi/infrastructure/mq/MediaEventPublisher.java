@@ -1,4 +1,4 @@
-package com.posty.postingapi.mq;
+package com.posty.postingapi.infrastructure.mq;
 
 import com.posty.postingapi.domain.post.Media;
 import com.posty.postingapi.properties.MediaProperties;
@@ -22,11 +22,11 @@ public class MediaEventPublisher {
         deleteQueueName = mediaProperties.getDeleteQueueName();
     }
 
-    public void publishMediaUpload(Media media) {
-        jmsTemplate.convertAndSend(uploadQueueName, media.getId());
+    public void publishMediaUpload(Long mediaId) {
+        jmsTemplate.convertAndSend(uploadQueueName, mediaId);
     }
 
-    public void publishMediaDelete(Media media) {
-        jmsTemplate.convertAndSend(deleteQueueName, media.getId());
+    public void publishMediaDelete(Long mediaId) {
+        jmsTemplate.convertAndSend(deleteQueueName, mediaId);
     }
 }

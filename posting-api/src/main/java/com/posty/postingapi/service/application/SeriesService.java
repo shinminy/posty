@@ -3,6 +3,8 @@ package com.posty.postingapi.service.application;
 import com.posty.postingapi.domain.account.Account;
 import com.posty.postingapi.domain.account.AccountRepository;
 import com.posty.postingapi.domain.comment.CommentRepository;
+import com.posty.postingapi.domain.post.event.MediaChangedEvent;
+import com.posty.postingapi.domain.series.event.SeriesChangedEvent;
 import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.domain.post.*;
@@ -15,10 +17,11 @@ import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.PostMapper;
 import com.posty.postingapi.mapper.SeriesMapper;
-import com.posty.postingapi.mq.MediaEventPublisher;
 import com.posty.postingapi.properties.PaginationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Transactional(readOnly = true)
 public class SeriesService {
 
     private final SeriesRepository seriesRepository;
@@ -33,10 +37,11 @@ public class SeriesService {
     private final AccountRepository accountRepository;
     private final CommentRepository commentRepository;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     private final WriterCacheManager writerCacheManager;
 
     private final MediaService mediaService;
-    private final MediaEventPublisher mediaEventPublisher;
 
     private final int defaultPage;
     private final int defaultPageSize;
@@ -46,9 +51,9 @@ public class SeriesService {
             PostRepository postRepository,
             AccountRepository accountRepository,
             CommentRepository commentRepository,
+            ApplicationEventPublisher applicationEventPublisher,
             WriterCacheManager writerCacheManager,
             MediaService mediaService,
-            MediaEventPublisher mediaEventPublisher,
             PaginationProperties paginationProperties
     ) {
         this.seriesRepository = seriesRepository;
@@ -56,10 +61,11 @@ public class SeriesService {
         this.accountRepository = accountRepository;
         this.commentRepository = commentRepository;
 
+        this.applicationEventPublisher = applicationEventPublisher;
+
         this.writerCacheManager = writerCacheManager;
 
         this.mediaService = mediaService;
-        this.mediaEventPublisher = mediaEventPublisher;
 
         defaultPage = paginationProperties.getDefaultPage();
         defaultPageSize = paginationProperties.getDefaultSize();
@@ -70,62 +76,81 @@ public class SeriesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Series", seriesId));
     }
 
+    private void publishMediaDeletedEvents(List<Media> mediaList) {
+        mediaList.stream()
+                .map(media -> new MediaChangedEvent(
+                        media.getId(),
+                        MediaChangedEvent.MediaChangeType.DELETED
+                ))
+                .forEach(applicationEventPublisher::publishEvent);
+    }
+
+    private void deleteMediaAndPublishEvents(List<Media> mediaList) {
+        List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
+        publishMediaDeletedEvents(waitingMediaList);
+    }
+
     public SeriesDetailResponse getSeriesDetail(Long seriesId, Pageable pageable) {
         Series series = findSeriesById(seriesId);
 
         List<String> writers = writerCacheManager.loadWritersOfSeries(seriesId);
 
-        Page<Post> postData = postRepository.findAllBySeriesId(seriesId, pageable);
-        Page<PostSummary> posts = postData.map(PostMapper::toPostSummary);
+        Page<PostSummary> posts = postRepository.findAllBySeriesId(seriesId, pageable)
+                .map(PostMapper::toPostSummary);
 
         return SeriesMapper.toSeriesDetailResponse(series, writers, posts);
     }
 
+    @Transactional
     public SeriesDetailResponse createSeries(SeriesCreateRequest request) {
         request.normalize();
 
-        List<Long> managerIds = request.getManagerIds();
-        List<Account> managers = accountRepository.findNonDeletedByIdIn(managerIds);
-        if (managers.isEmpty()) {
+        Set<Account> managers = findManagersByIds(request.getManagerIds());
+
+        Series series = SeriesMapper.toEntity(request, managers);
+        Series saved = seriesRepository.save(series);
+
+        return SeriesMapper.toSeriesDetailResponse(
+                saved,
+                new ArrayList<>(),
+                getEmptyPostPage()
+        );
+    }
+
+    private Set<Account> findManagersByIds(List<Long> managerIds) {
+        List<Account> managerList = accountRepository.findNonDeletedByIdIn(managerIds);
+        if (managerList.isEmpty()) {
             throw new ResourceNotFoundException("Account", managerIds);
         }
 
-        Series series = SeriesMapper.toEntity(request, new HashSet(managers));
-        Series saved = seriesRepository.save(series);
+        return new HashSet<>(managerList);
+    }
 
-        Page<PostSummary> emptyPosts = new PageImpl<>(
+    private Page<PostSummary> getEmptyPostPage() {
+        return new PageImpl<>(
                 new ArrayList<>(),
                 PageRequest.of(defaultPage, defaultPageSize, Sort.by(Sort.Direction.DESC, "id")),
                 0
         );
-
-        return SeriesMapper.toSeriesDetailResponse(saved, new ArrayList<>(), emptyPosts);
     }
 
+    @Transactional
     public void updateSeries(Long seriesId, SeriesUpdateRequest request) {
         Series series = findSeriesById(seriesId);
-
         request.normalize();
 
         List<Long> managerIds = request.getManagerIds();
-        Set<Account> managers;
-        if (managerIds == null) {
-            managers = series.getManagers();
-        } else {
-            List<Account> managerList = accountRepository.findNonDeletedByIdIn(managerIds);
-            if (managerList.isEmpty()) {
-                throw new ResourceNotFoundException("Account", managerIds);
-            }
-
-            managers = new HashSet<>(managerList);
-        }
+        Set<Account> managers = managerIds == null
+                ? series.getManagers()
+                : findManagersByIds(managerIds);
 
         series.updateInfo(request, managers);
         seriesRepository.save(series);
 
-        writerCacheManager.clearWritersOfSeries(seriesId);
+        applicationEventPublisher.publishEvent(new SeriesChangedEvent(seriesId));
     }
 
+    @Transactional
     public void deleteSeries(Long seriesId) {
         Series series = findSeriesById(seriesId);
 
@@ -134,10 +159,8 @@ public class SeriesService {
         commentRepository.deleteAllBySeriesId(seriesId);
         seriesRepository.delete(series);
 
-        writerCacheManager.clearWritersOfSeries(seriesId);
-
-        List<Media> waitingMediaList = mediaService.deleteOrPrepareMediaForDeletion(mediaList);
-        waitingMediaList.forEach(mediaEventPublisher::publishMediaDelete);
+        applicationEventPublisher.publishEvent(new SeriesChangedEvent(seriesId));
+        deleteMediaAndPublishEvents(mediaList);
     }
 
     public Page<SeriesSummary> getSeriesByManager(Long accountId, Pageable pageable) {

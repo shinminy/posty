@@ -1,6 +1,7 @@
 package com.posty.postingapi.service.application;
 
 import com.posty.postingapi.domain.account.*;
+import com.posty.postingapi.domain.account.event.AccountChangedEvent;
 import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.posty.postingapi.dto.account.AccountCreateRequest;
 import com.posty.postingapi.dto.account.AccountDeleteResponse;
@@ -10,19 +11,21 @@ import com.posty.postingapi.error.AccountUpdateNotAllowedException;
 import com.posty.postingapi.error.DuplicateAccountDeletionException;
 import com.posty.postingapi.error.DuplicateAccountException;
 import com.posty.postingapi.error.ResourceNotFoundException;
-import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.properties.SchedulerProperties;
-import com.posty.postingapi.support.TestTimeConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +37,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
+    private final Clock clock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+
     @Mock
     private AccountRepository accountRepository;
 
@@ -41,7 +46,7 @@ class AccountServiceTest {
     private AccountDeletionScheduleRepository accountDeletionScheduleRepository;
 
     @Mock
-    private WriterCacheManager writerCacheManager;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -49,23 +54,20 @@ class AccountServiceTest {
     @Mock
     private SchedulerProperties schedulerProperties;
 
-    private Clock clock;
-
     private AccountService accountService;
 
     @BeforeEach
     void setUp() {
         var accountConfig = mock(SchedulerProperties.AccountSchedulerProperties.class);
         var deletionConfig = mock(SchedulerProperties.AccountSchedulerProperties.AccountDeletionProperties.class);
+
         given(schedulerProperties.getAccount()).willReturn(accountConfig);
         given(accountConfig.getDeletion()).willReturn(deletionConfig);
         given(deletionConfig.getGracePeriodDays()).willReturn(1);
 
-        clock = new TestTimeConfig().testClock();
-
         accountService = new AccountService(
                 accountRepository, accountDeletionScheduleRepository,
-                writerCacheManager, clock, passwordEncoder, schedulerProperties
+                applicationEventPublisher, clock, passwordEncoder, schedulerProperties
         );
     }
 
@@ -109,7 +111,6 @@ class AccountServiceTest {
         AccountCreateRequest request = new AccountCreateRequest(
                 "new@example.com", "password", "newName", "+82-10-1234-5678"
         );
-
         request.normalize();
 
         given(accountRepository.existsNonDeletedByEmail(request.getEmail())).willReturn(false);
@@ -161,15 +162,19 @@ class AccountServiceTest {
         AccountUpdateRequest request = new AccountUpdateRequest(
                 "newPassword", "newName", "+82-10-8765-4321"
         );
+        request.normalize();
 
-        given(accountRepository.existsNonDeletedByName("newname")).willReturn(false);
+        given(accountRepository.existsNonDeletedByName(request.getName())).willReturn(false);
 
         // when
         accountService.updateAccount(accountId, request);
 
         // then
-        assertThat(account.getName()).isEqualTo("newname");
-        verify(writerCacheManager).clearAccountName(accountId);
+        assertThat(account.getName()).isEqualTo(request.getName());
+
+        ArgumentCaptor<AccountChangedEvent> eventCaptor = ArgumentCaptor.forClass(AccountChangedEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().accountId()).isEqualTo(accountId);
     }
 
     @Test
@@ -200,10 +205,11 @@ class AccountServiceTest {
                 .name("oldName")
                 .status(AccountStatus.NORMAL)
                 .build();
-        given(accountRepository.findNonDeletedById(accountId)).willReturn(Optional.of(account));
-        given(accountRepository.existsNonDeletedByName("newname")).willReturn(true);
-
         AccountUpdateRequest request = new AccountUpdateRequest(null, "newName", null);
+        request.normalize();
+
+        given(accountRepository.findNonDeletedById(accountId)).willReturn(Optional.of(account));
+        given(accountRepository.existsNonDeletedByName(request.getName())).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> accountService.updateAccount(accountId, request))
@@ -221,15 +227,18 @@ class AccountServiceTest {
                 .build();
         given(accountRepository.findNonDeletedById(accountId)).willReturn(Optional.of(account));
         given(accountDeletionScheduleRepository.findByAccountId(accountId)).willReturn(Optional.empty());
-        given(accountDeletionScheduleRepository.save(any(AccountDeletionSchedule.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+
+        LocalDateTime scheduledAt = LocalDateTime.now(clock).plusDays(1);
+
+        AccountDeletionSchedule savedSchedule = spy(AccountDeletionSchedule.create(account, scheduledAt));
+        given(accountDeletionScheduleRepository.save(any(AccountDeletionSchedule.class))).willReturn(savedSchedule);
 
         // when
         AccountDeleteResponse response = accountService.scheduleAccountDeletion(accountId);
 
         // then
         assertThat(account.getStatus()).isEqualTo(AccountStatus.WAITING_FOR_DELETION);
-        assertThat(response.getScheduledAt()).isEqualTo(LocalDateTime.now(clock).plusDays(1));
+        assertThat(response.getScheduledAt()).isEqualTo(scheduledAt);
         verify(accountDeletionScheduleRepository).save(any(AccountDeletionSchedule.class));
         verify(accountRepository).save(account);
     }

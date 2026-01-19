@@ -7,19 +7,22 @@ import com.posty.postingapi.domain.post.Post;
 import com.posty.postingapi.domain.post.PostBlockRepository;
 import com.posty.postingapi.domain.post.PostRepository;
 import com.posty.postingapi.domain.post.PostBlock;
+import com.posty.postingapi.domain.post.event.PostChangedEvent;
 import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.domain.series.SeriesRepository;
+import com.posty.postingapi.domain.series.event.SeriesChangedEvent;
 import com.posty.postingapi.dto.post.*;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
-import com.posty.postingapi.mq.MediaEventPublisher;
 import com.posty.postingapi.properties.PaginationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -53,13 +56,13 @@ class PostServiceTest {
     private CommentRepository commentRepository;
 
     @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Mock
     private WriterCacheManager writerCacheManager;
 
     @Mock
     private MediaService mediaService;
-
-    @Mock
-    private MediaEventPublisher mediaEventPublisher;
 
     @Mock
     private PaginationProperties paginationProperties;
@@ -73,7 +76,7 @@ class PostServiceTest {
         
         postService = new PostService(
                 postRepository, postBlockRepository, seriesRepository, accountRepository, commentRepository,
-                writerCacheManager, mediaService, mediaEventPublisher,
+                applicationEventPublisher, writerCacheManager, mediaService,
                 paginationProperties
         );
     }
@@ -116,6 +119,7 @@ class PostServiceTest {
     @DisplayName("포스트 생성 성공")
     void createPost_Success() {
         // given
+        Long postId = 100L;
         Long seriesId = 1L;
         Long writerId = 1L;
         Series series = Series.builder().id(seriesId).build();
@@ -126,20 +130,29 @@ class PostServiceTest {
                 "Test Title",
                 List.of(new PostBlockCreateRequest(1, writerId, new TextContentRequest("Test Content")))
         );
+        request.normalize();
 
         given(seriesRepository.findById(seriesId)).willReturn(Optional.of(series));
         given(accountRepository.findNonDeletedById(writerId)).willReturn(Optional.of(writer));
-        given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
-            Post post = invocation.getArgument(0);
-            return post;
-        });
+
+        Post savedPost = Post.builder()
+                .id(postId)
+                .title(request.getTitle())
+                .series(series)
+                .build();
+        given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
         // when
         PostDetailResponse response = postService.createPost(request);
 
         // then
-        assertThat(response.getTitle()).isEqualTo("Test Title");
+        assertThat(response.getId()).isEqualTo(postId);
+        assertThat(response.getTitle()).isEqualTo(request.getTitle());
         verify(postRepository).save(any(Post.class));
+
+        ArgumentCaptor<SeriesChangedEvent> eventCaptor = ArgumentCaptor.forClass(SeriesChangedEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().seriesId()).isEqualTo(seriesId);
     }
 
     @Test
@@ -163,6 +176,7 @@ class PostServiceTest {
         Long seriesId = 1L;
         Post post = Post.builder().id(postId).series(Series.builder().id(seriesId).build()).build();
         PostUpdateRequest request = new PostUpdateRequest("Updated Title", null, null, null);
+        request.normalize();
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
         given(postRepository.save(any(Post.class))).willReturn(post);
@@ -171,9 +185,12 @@ class PostServiceTest {
         postService.updatePost(postId, request);
 
         // then
-        assertThat(post.getTitle()).isEqualTo("Updated Title");
+        assertThat(post.getTitle()).isEqualTo(request.getTitle());
         verify(postRepository).save(post);
-        verify(writerCacheManager).clearWritersOfPosts(postId, seriesId);
+
+        ArgumentCaptor<PostChangedEvent> eventCaptor = ArgumentCaptor.forClass(PostChangedEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().postId()).isEqualTo(postId);
     }
 
     @Test
@@ -204,7 +221,10 @@ class PostServiceTest {
 
         // then
         verify(postRepository).delete(post);
-        verify(writerCacheManager).clearWritersOfPosts(postId, seriesId);
+
+        ArgumentCaptor<PostChangedEvent> eventCaptor = ArgumentCaptor.forClass(PostChangedEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().postId()).isEqualTo(postId);
     }
 
     @Test

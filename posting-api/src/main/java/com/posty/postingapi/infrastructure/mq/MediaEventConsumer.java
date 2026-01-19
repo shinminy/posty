@@ -1,4 +1,4 @@
-package com.posty.postingapi.mq;
+package com.posty.postingapi.infrastructure.mq;
 
 import com.posty.postingapi.service.application.MediaService;
 import lombok.extern.slf4j.Slf4j;

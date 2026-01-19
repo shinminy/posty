@@ -6,20 +6,22 @@ import com.posty.postingapi.domain.comment.CommentRepository;
 import com.posty.postingapi.domain.post.PostRepository;
 import com.posty.postingapi.domain.series.Series;
 import com.posty.postingapi.domain.series.SeriesRepository;
+import com.posty.postingapi.domain.series.event.SeriesChangedEvent;
 import com.posty.postingapi.dto.series.SeriesCreateRequest;
 import com.posty.postingapi.dto.series.SeriesDetailResponse;
 import com.posty.postingapi.dto.series.SeriesUpdateRequest;
 import com.posty.postingapi.dto.series.SeriesSummary;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
-import com.posty.postingapi.mq.MediaEventPublisher;
 import com.posty.postingapi.properties.PaginationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 
 import java.util.Collections;
@@ -54,7 +56,7 @@ class SeriesServiceTest {
     private MediaService mediaService;
 
     @Mock
-    private MediaEventPublisher mediaEventPublisher;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Mock
     private PaginationProperties paginationProperties;
@@ -68,7 +70,7 @@ class SeriesServiceTest {
 
         seriesService = new SeriesService(
                 seriesRepository, postRepository, accountRepository, commentRepository,
-                writerCacheManager, mediaService, mediaEventPublisher,
+                applicationEventPublisher, writerCacheManager, mediaService,
                 paginationProperties
         );
     }
@@ -112,19 +114,28 @@ class SeriesServiceTest {
     @DisplayName("시리즈 생성 성공")
     void createSeries_Success() {
         // given
+        Long seriesId = 1L;
         Long managerId = 1L;
+
         SeriesCreateRequest request = new SeriesCreateRequest("Series Title", "Description", List.of(managerId));
+        request.normalize();
         Account manager = Account.builder().id(managerId).name("Manager").build();
 
         given(accountRepository.findNonDeletedByIdIn(List.of(managerId))).willReturn(List.of(manager));
-        given(seriesRepository.save(any(Series.class)))
-                .willAnswer(invocation -> invocation.<Series>getArgument(0));
+
+        Series savedSeries = Series.builder()
+                .id(seriesId)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .build();
+        given(seriesRepository.save(any(Series.class))).willReturn(savedSeries);
 
         // when
         SeriesDetailResponse response = seriesService.createSeries(request);
 
         // then
-        assertThat(response.getTitle()).isEqualTo("Series Title");
+        assertThat(response.getId()).isEqualTo(seriesId);
+        assertThat(response.getTitle()).isEqualTo(request.getTitle());
         verify(seriesRepository).save(any(Series.class));
     }
 
@@ -149,6 +160,7 @@ class SeriesServiceTest {
         Long seriesId = 1L;
         Series series = Series.builder().id(seriesId).title("Old Title").build();
         SeriesUpdateRequest request = new SeriesUpdateRequest("New Title", "New Desc", List.of(1L));
+        request.normalize();
         Account manager = Account.builder().id(1L).build();
 
         given(seriesRepository.findById(seriesId)).willReturn(Optional.of(series));
@@ -158,9 +170,12 @@ class SeriesServiceTest {
         seriesService.updateSeries(seriesId, request);
 
         // then
-        assertThat(series.getTitle()).isEqualTo("New Title");
+        assertThat(series.getTitle()).isEqualTo(request.getTitle());
         verify(seriesRepository).save(series);
-        verify(writerCacheManager).clearWritersOfSeries(seriesId);
+
+        ArgumentCaptor<SeriesChangedEvent> eventCaptor = ArgumentCaptor.forClass(SeriesChangedEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().seriesId()).isEqualTo(seriesId);
     }
 
     @Test
@@ -206,7 +221,10 @@ class SeriesServiceTest {
 
         // then
         verify(seriesRepository).delete(series);
-        verify(writerCacheManager).clearWritersOfSeries(seriesId);
+
+        ArgumentCaptor<SeriesChangedEvent> eventCaptor = ArgumentCaptor.forClass(SeriesChangedEvent.class);
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().seriesId()).isEqualTo(seriesId);
     }
 
     @Test

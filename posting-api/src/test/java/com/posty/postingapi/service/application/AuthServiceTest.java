@@ -17,13 +17,11 @@ import com.posty.postingapi.infrastructure.mail.MailTemplateLoader;
 import com.posty.postingapi.infrastructure.mail.SmtpEmailSender;
 import com.posty.postingapi.properties.TimeToLiveProperties;
 import com.posty.postingapi.security.jwt.JwtTokenProvider;
-import com.posty.postingapi.support.TestTimeConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -42,6 +40,8 @@ import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
+
+    private final Clock clock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneId.of("Asia/Seoul"));
 
     @Mock
     private AccountRepository accountRepository;
@@ -67,8 +67,6 @@ class AuthServiceTest {
     @Mock
     private TimeToLiveProperties timeToLiveProperties;
 
-    private Clock clock;
-
     private AuthService authService;
 
     @BeforeEach
@@ -79,8 +77,6 @@ class AuthServiceTest {
         var verificationProperties = mock(TimeToLiveProperties.VerificationProperties.class);
         given(timeToLiveProperties.getVerification()).willReturn(verificationProperties);
         given(verificationProperties.getCode()).willReturn(Duration.ofMinutes(5));
-
-        clock = new TestTimeConfig().testClock();
 
         authService = new AuthService(
                 accountRepository, passwordEncoder, jwtTokenProvider,
@@ -147,7 +143,7 @@ class AuthServiceTest {
                 .build();
 
         given(accountRepository.findNonDeletedByEmail(email)).willReturn(Optional.of(account));
-        given(passwordEncoder.matches(password, "hashedPassword")).willReturn(false);
+        given(passwordEncoder.matches(password, account.getPassword())).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> authService.login(request))
