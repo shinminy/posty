@@ -114,22 +114,17 @@ public class AccountService {
     public AccountDeleteResponse scheduleAccountDeletion(Long accountId) {
         Account account = findAccountById(accountId);
 
-        Optional<AccountDeletionSchedule> optionalSchedule = accountDeletionScheduleRepository.findByAccountId(account.getId());
-        if (optionalSchedule
-                .filter(schedule -> !schedule.getStatus().canReschedule())
-                .isPresent()) {
-            throw new DuplicateAccountDeletionException(optionalSchedule.get());
-        }
-        optionalSchedule.ifPresent(accountDeletionScheduleRepository::delete);
+        accountDeletionScheduleRepository.findByAccountId(account.getId())
+                .ifPresent(schedule -> {
+                    if (!schedule.getStatus().canReschedule()) {
+                        throw new DuplicateAccountDeletionException(schedule);
+                    }
 
-        LocalDateTime now = LocalDateTime.now(clock);
-        AccountDeletionSchedule schedule = AccountDeletionSchedule.builder()
-                .account(account)
-                .status(ScheduleStatus.SCHEDULED)
-                .scheduledAt(now.plusDays(deletionGracePeriodDays))
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+                    accountDeletionScheduleRepository.delete(schedule);
+                });
+
+        LocalDateTime scheduledAt = LocalDateTime.now(clock).plusDays(deletionGracePeriodDays);
+        AccountDeletionSchedule schedule = AccountDeletionSchedule.create(account, scheduledAt);
         AccountDeletionSchedule saved = accountDeletionScheduleRepository.save(schedule);
 
         account.markWaitingForDeletion();

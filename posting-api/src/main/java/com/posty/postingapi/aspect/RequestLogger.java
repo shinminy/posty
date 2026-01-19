@@ -1,9 +1,12 @@
 package com.posty.postingapi.aspect;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posty.postingapi.properties.ApiProperties;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -14,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,15 +28,22 @@ public class RequestLogger {
 
     private final ApiProperties apiProperties;
 
-    public RequestLogger(ApiProperties apiProperties) {
+    private final ObjectMapper objectMapper;
+
+    public RequestLogger(
+            ApiProperties apiProperties,
+            ObjectMapper objectMapper
+    ) {
         this.apiProperties = apiProperties;
+
+        this.objectMapper = objectMapper;
     }
 
     @Pointcut("execution(* com.posty.postingapi.controller.*.*(..))")
     public void controllerMethods() {}
 
     @Before("controllerMethods()")
-    public void logRequestInfo() {
+    public void logRequestInfo(JoinPoint joinPoint) {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
             log.warn("No ServletRequestAttributes found in RequestContextHolder");
@@ -43,21 +54,30 @@ public class RequestLogger {
         String requestId = UUID.randomUUID().toString();
         servletRequest.setAttribute(apiProperties.getRequestIdName(), requestId);
 
-        String body;
-        if (servletRequest instanceof ContentCachingRequestWrapper wrapper) {
+        String body = "No body found";
+
+        Object bodyObject = Arrays.stream(joinPoint.getArgs())
+                .filter(arg -> arg != null && isDto(arg))
+                .findFirst()
+                .orElse(null);
+
+        if (bodyObject != null) {
+            try {
+                body = objectMapper.writeValueAsString(bodyObject);
+            } catch (JsonProcessingException e) {
+                body = "Serialization failed";
+            }
+        } else if (servletRequest instanceof ContentCachingRequestWrapper wrapper) {
             byte[] content = wrapper.getContentAsByteArray();
-            if (content.length == 0) {
-                body = "No body found";
-            } else {
+            if (content.length > 0) {
                 try {
-                    body = new String(content, wrapper.getCharacterEncoding());
+                    String rawBody = new String(content, wrapper.getCharacterEncoding());
+                    body = maskSensitiveRawString(rawBody);
                 } catch (UnsupportedEncodingException e) {
                     body = "Failed to decode request body";
                     log.warn("{}", body, e);
                 }
             }
-        } else {
-            body = "Not cacheable";
         }
 
         log.info(
@@ -71,6 +91,15 @@ public class RequestLogger {
                 servletRequest.getHeader(apiProperties.getKeyHeaderName()),
                 body
         );
+    }
+
+    private boolean isDto(Object arg) {
+        String packageName = arg.getClass().getPackageName();
+        return packageName.startsWith("com.posty.postingapi.dto");
+    }
+
+    private String maskSensitiveRawString(String raw) {
+        return raw.replaceAll("(\"password\"\\s*:\\s*)\"[^\"]+\"", "$1\"****\"");
     }
 
     private String getRequestUrl(HttpServletRequest request) {
