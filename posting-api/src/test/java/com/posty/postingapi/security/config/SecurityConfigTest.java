@@ -59,7 +59,7 @@ class SecurityConfigTest {
         given(jwtTokenProvider.getClaims(token)).willReturn(claims);
 
         // when & then
-        mockMvc.perform(get("/account/1")
+        mockMvc.perform(get("/accounts/1")
                         .header(apiProperties.getKeyHeaderName(), apiKey)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk());
@@ -99,7 +99,7 @@ class SecurityConfigTest {
         given(jwtTokenProvider.getClaims(token)).willReturn(claims);
 
         // when & then
-        mockMvc.perform(get("/account/1")
+        mockMvc.perform(get("/accounts/1")
                         .header(apiProperties.getKeyHeaderName(), apiKey)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk());
