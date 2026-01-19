@@ -40,7 +40,7 @@ public class Post {
     private LocalDateTime updatedAt;
 
     @Builder.Default
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostBlock> blocks = new ArrayList<>();
 
     public void updateTitle(String title) {
@@ -57,5 +57,16 @@ public class Post {
     public void removeBlock(PostBlock block) {
         this.blocks.remove(block);
         block.setPost(null);
+    }
+
+    public void removeBlocks(List<Long> blockIds) {
+        this.blocks.removeIf(block -> {
+            if (blockIds.contains(block.getId())) {
+                block.setPost(null);
+                return true;
+            } else {
+                return false;
+            }
+        });
     }
 }

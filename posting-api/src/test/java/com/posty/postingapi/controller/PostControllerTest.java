@@ -50,7 +50,7 @@ class PostControllerTest {
         given(postService.getPostDetail(anyLong(), anyInt(), anyInt())).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/post/{postId}", postId)
+        mockMvc.perform(get("/posts/{postId}", postId)
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk());
@@ -69,7 +69,7 @@ class PostControllerTest {
         given(postService.createPost(any(PostCreateRequest.class))).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/post")
+        mockMvc.perform(post("/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -85,7 +85,7 @@ class PostControllerTest {
         PostUpdateRequest request = new PostUpdateRequest("Updated Title", null, null, null);
 
         // when & then
-        mockMvc.perform(put("/post/{postId}", postId)
+        mockMvc.perform(patch("/posts/{postId}", postId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
@@ -100,7 +100,7 @@ class PostControllerTest {
         Long postId = 1L;
 
         // when & then
-        mockMvc.perform(delete("/post/{postId}", postId))
+        mockMvc.perform(delete("/posts/{postId}", postId))
                 .andExpect(status().isNoContent());
 
         verify(postService).deletePost(postId);

@@ -86,7 +86,7 @@ class SeriesControllerTest {
         SeriesUpdateRequest request = new SeriesUpdateRequest("Updated Series", "New Description", List.of(1L));
 
         // when & then
-        mockMvc.perform(put("/series/{seriesId}", seriesId)
+        mockMvc.perform(patch("/series/{seriesId}", seriesId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());

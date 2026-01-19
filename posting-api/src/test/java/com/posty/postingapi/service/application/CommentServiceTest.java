@@ -82,9 +82,12 @@ class CommentServiceTest {
     @DisplayName("댓글 생성 성공")
     void createComment_Success() {
         // given
+        Long commentId = 1L;
         Long postId = 1L;
         Long writerId = 1L;
+
         CommentCreateRequest request = new CommentCreateRequest(postId, "Test Comment", writerId);
+        request.normalize();
         
         Post post = Post.builder().id(postId).title("Post").build();
         Account writer = Account.builder().id(writerId).name("Writer").build();
@@ -92,11 +95,20 @@ class CommentServiceTest {
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
         given(accountRepository.findNonDeletedById(writerId)).willReturn(Optional.of(writer));
 
+        Comment savedComment = Comment.builder()
+                .id(commentId)
+                .content(request.getContent())
+                .post(post)
+                .writer(writer)
+                .build();
+        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
+
         // when
         CommentDetailResponse response = commentService.createComment(request);
 
         // then
-        assertThat(response.getContent()).isEqualTo("Test Comment");
+        assertThat(response.getId()).isEqualTo(commentId);
+        assertThat(response.getContent()).isEqualTo(request.getContent());
         verify(commentRepository).save(any(Comment.class));
     }
 
@@ -107,6 +119,7 @@ class CommentServiceTest {
         Long commentId = 1L;
         Comment comment = Comment.builder().id(commentId).content("Old Content").build();
         CommentUpdateRequest request = new CommentUpdateRequest("New Content");
+        request.normalize();
         
         given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
 
@@ -114,7 +127,7 @@ class CommentServiceTest {
         commentService.updateComment(commentId, request);
 
         // then
-        assertThat(comment.getContent()).isEqualTo("New Content");
+        assertThat(comment.getContent()).isEqualTo(request.getContent());
         verify(commentRepository).save(comment);
     }
 

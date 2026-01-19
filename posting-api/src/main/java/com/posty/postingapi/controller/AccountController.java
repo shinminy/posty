@@ -28,7 +28,7 @@ import java.net.URI;
 @ResponseLogging
 @Validated
 @RestController
-@RequestMapping("/account")
+@RequestMapping("/accounts")
 public class AccountController {
 
     private final AccountService accountService;
@@ -58,7 +58,7 @@ public class AccountController {
 
     @Operation(summary = "계정 수정", description = "계정 정보를 수정합니다. (관리 중인 시리즈 정보는 제외)")
     @ApiResponse(responseCode = "204", description = "No Content")
-    @PutMapping("/{accountId}")
+    @PatchMapping("/{accountId}")
     public ResponseEntity<Void> updateAccount(@PathVariable Long accountId, @Valid @RequestBody AccountUpdateRequest request) {
         accountService.updateAccount(accountId, request);
         return ResponseEntity.noContent().build();

@@ -86,7 +86,7 @@ class LoggingTest {
         given(accountService.getAccountDetail(accountId)).willReturn(response);
 
         // when
-        mockMvc.perform(get("/account/{accountId}", accountId))
+        mockMvc.perform(get("/accounts/{accountId}", accountId))
                 .andExpect(status().isOk());
 
         // then

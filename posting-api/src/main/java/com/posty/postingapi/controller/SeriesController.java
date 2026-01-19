@@ -66,7 +66,7 @@ public class SeriesController {
 
     @Operation(summary = "시리즈 수정", description = "시리즈 정보를 수정합니다.")
     @ApiResponse(responseCode = "204", description = "No Content")
-    @PutMapping("/{seriesId}")
+    @PatchMapping("/{seriesId}")
     public ResponseEntity<Void> updateSeries(@PathVariable Long seriesId, @Valid @RequestBody SeriesUpdateRequest request) {
         seriesService.updateSeries(seriesId, request);
         return ResponseEntity.noContent().build();

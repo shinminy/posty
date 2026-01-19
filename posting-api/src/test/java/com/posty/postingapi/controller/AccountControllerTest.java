@@ -52,7 +52,7 @@ class AccountControllerTest {
         given(accountService.getAccountDetail(accountId)).willReturn(response);
 
         // when & then
-        mockMvc.perform(get("/account/{accountId}", accountId))
+        mockMvc.perform(get("/accounts/{accountId}", accountId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.name").value("tester"));
@@ -75,7 +75,7 @@ class AccountControllerTest {
         testMapper.configure(MapperFeature.USE_ANNOTATIONS, false);
 
         // when & then
-        mockMvc.perform(post("/account")
+        mockMvc.perform(post("/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(testMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -92,7 +92,7 @@ class AccountControllerTest {
         );
 
         // when & then
-        mockMvc.perform(put("/account/{accountId}", accountId)
+        mockMvc.perform(patch("/accounts/{accountId}", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
@@ -110,7 +110,7 @@ class AccountControllerTest {
         given(accountService.scheduleAccountDeletion(accountId)).willReturn(response);
 
         // when & then
-        mockMvc.perform(delete("/account/{accountId}", accountId))
+        mockMvc.perform(delete("/accounts/{accountId}", accountId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.scheduledAt").exists());
 

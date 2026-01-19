@@ -1,35 +1,36 @@
 package com.posty.postingapi.service.application;
 
+import com.posty.postingapi.domain.account.event.AccountChangedEvent;
 import com.posty.postingapi.dto.account.AccountCreateRequest;
 import com.posty.postingapi.dto.account.AccountDeleteResponse;
 import com.posty.postingapi.dto.account.AccountDetailResponse;
 import com.posty.postingapi.dto.account.AccountUpdateRequest;
-import com.posty.postingapi.infrastructure.cache.WriterCacheManager;
 import com.posty.postingapi.properties.SchedulerProperties;
 import com.posty.postingapi.domain.account.*;
-import com.posty.postingapi.domain.common.ScheduleStatus;
 import com.posty.postingapi.error.AccountUpdateNotAllowedException;
 import com.posty.postingapi.error.DuplicateAccountDeletionException;
 import com.posty.postingapi.error.DuplicateAccountException;
 import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.mapper.AccountMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountDeletionScheduleRepository accountDeletionScheduleRepository;
 
-    private final WriterCacheManager writerCacheManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private final Clock clock;
     private final PasswordEncoder passwordEncoder;
@@ -37,14 +38,17 @@ public class AccountService {
     private final int deletionGracePeriodDays;
 
     public AccountService(
-            AccountRepository accountRepository, AccountDeletionScheduleRepository accountDeletionScheduleRepository,
-            WriterCacheManager writerCacheManager,
-            Clock clock, PasswordEncoder passwordEncoder, SchedulerProperties schedulerProperties
+            AccountRepository accountRepository,
+            AccountDeletionScheduleRepository accountDeletionScheduleRepository,
+            ApplicationEventPublisher applicationEventPublisher,
+            Clock clock,
+            PasswordEncoder passwordEncoder,
+            SchedulerProperties schedulerProperties
     ) {
         this.accountRepository = accountRepository;
         this.accountDeletionScheduleRepository = accountDeletionScheduleRepository;
 
-        this.writerCacheManager = writerCacheManager;
+        this.applicationEventPublisher = applicationEventPublisher;
 
         this.clock = clock;
         this.passwordEncoder = passwordEncoder;
@@ -59,10 +63,10 @@ public class AccountService {
 
     public AccountDetailResponse getAccountDetail(Long accountId) {
         Account account = findAccountById(accountId);
-
         return AccountMapper.toAccountDetailResponse(account);
     }
 
+    @Transactional
     public AccountDetailResponse createAccount(AccountCreateRequest request) {
         request.normalize();
 
@@ -84,6 +88,7 @@ public class AccountService {
         return AccountMapper.toAccountDetailResponse(saved);
     }
 
+    @Transactional
     public void updateAccount(Long accountId, AccountUpdateRequest request) {
         Account account = findAccountById(accountId);
 
@@ -95,22 +100,27 @@ public class AccountService {
 
         String oldName = account.getName();
         String newName = request.getName();
-        boolean hasNewName = StringUtils.hasText(newName);
-        if (hasNewName && !newName.equalsIgnoreCase(oldName) && accountRepository.existsNonDeletedByName(newName)) {
+        boolean nameChanged = isNameChanged(oldName, newName);
+        if (nameChanged && accountRepository.existsNonDeletedByName(newName)) {
             throw new DuplicateAccountException(newName);
         }
 
-        String newPassword = request.getPassword();
-        String hashedPassword = StringUtils.hasText(newPassword) ? passwordEncoder.encode(newPassword) : null;
+        String rawPassword = request.getPassword();
+        String hashedPassword = StringUtils.hasText(rawPassword) ? passwordEncoder.encode(rawPassword) : null;
 
         account.updateProfile(request, hashedPassword);
         accountRepository.save(account);
 
-        if (hasNewName && !newName.equals(oldName)) {
-            writerCacheManager.clearAccountName(accountId);
+        if (nameChanged && !newName.equals(oldName)) {
+            applicationEventPublisher.publishEvent(new AccountChangedEvent(accountId));
         }
     }
 
+    private boolean isNameChanged(String oldName, String newName) {
+        return StringUtils.hasText(newName) && !newName.equals(oldName);
+    }
+
+    @Transactional
     public AccountDeleteResponse scheduleAccountDeletion(Long accountId) {
         Account account = findAccountById(accountId);
 
