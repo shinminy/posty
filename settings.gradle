@@ -1,2 +1,2 @@
 rootProject.name = 'posty'
-include 'common', 'posting-api', 'file-api'
+include 'posting-api', 'file-api'

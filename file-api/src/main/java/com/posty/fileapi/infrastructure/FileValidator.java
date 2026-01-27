@@ -1,6 +1,5 @@
 package com.posty.fileapi.infrastructure;
 
-import com.posty.common.domain.post.MediaType;
 import com.posty.fileapi.properties.ValidationConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
@@ -35,11 +34,11 @@ public class FileValidator {
         return tika.detect(filePath);
     }
 
-    public String getDotExtensionIfValidMimeType(URL url, MediaType expected) throws IOException {
+    public String getDotExtensionIfValidMimeType(URL url, MimeMediaType expected) throws IOException {
         String detectedType = tika.detect(url);
         log.debug("Detected type is {}", detectedType);
 
-        if (!expected.isValid(detectedType)) {
+        if (!expected.matches(detectedType)) {
             return null;
         }
 

@@ -1,12 +1,12 @@
 package com.posty.postingapi.service.application;
 
-import com.posty.common.domain.post.MediaType;
-import com.posty.common.dto.FileUploadRequest;
-import com.posty.common.dto.FileUploadResponse;
 import com.posty.postingapi.domain.post.Media;
 import com.posty.postingapi.domain.post.MediaRepository;
 import com.posty.postingapi.domain.post.MediaStatus;
+import com.posty.postingapi.domain.post.MediaType;
 import com.posty.postingapi.infrastructure.file.FileApiClient;
+import com.posty.postingapi.infrastructure.file.FileUploadRequest;
+import com.posty.postingapi.infrastructure.file.FileUploadResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 import org.springframework.stereotype.Service;

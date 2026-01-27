@@ -1,4 +1,4 @@
-package com.posty.common.security;
+package com.posty.fileapi.common;
 
 public final class AuthConstants {
     public static final String AUTH_HEADER = "Authorization";

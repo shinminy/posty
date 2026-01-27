@@ -1,8 +1,8 @@
 package com.posty.fileapi.controller;
 
-import com.posty.common.dto.FileUploadRequest;
-import com.posty.common.dto.FileUploadResponse;
 import com.posty.fileapi.dto.FileData;
+import com.posty.fileapi.dto.FileUploadRequest;
+import com.posty.fileapi.dto.FileUploadResponse;
 import com.posty.fileapi.properties.ApiConfig;
 import com.posty.fileapi.service.FileService;
 import lombok.extern.slf4j.Slf4j;

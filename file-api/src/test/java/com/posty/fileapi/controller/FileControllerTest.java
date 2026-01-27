@@ -1,9 +1,9 @@
 package com.posty.fileapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.posty.common.domain.post.MediaType;
-import com.posty.common.dto.FileUploadRequest;
 import com.posty.fileapi.dto.FileData;
+import com.posty.fileapi.dto.FileUploadRequest;
+import com.posty.fileapi.dto.MediaType;
 import com.posty.fileapi.properties.ApiConfig;
 import com.posty.fileapi.service.FileService;
 import com.posty.fileapi.support.TestSecurityConfig;

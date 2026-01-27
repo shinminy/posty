@@ -2,8 +2,6 @@ package com.posty.postingapi.infrastructure.file;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.posty.common.dto.FileUploadRequest;
-import com.posty.common.dto.FileUploadResponse;
 import com.posty.postingapi.properties.MediaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
