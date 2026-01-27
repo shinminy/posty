@@ -1,6 +1,6 @@
-package com.posty.common.dto;
+package com.posty.postingapi.infrastructure.file;
 
-import com.posty.common.domain.post.MediaType;
+import com.posty.postingapi.domain.post.MediaType;
 import lombok.*;
 
 @NoArgsConstructor

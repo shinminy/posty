@@ -1,6 +1,6 @@
 package com.posty.fileapi.security;
 
-import com.posty.common.security.AuthConstants;
+import com.posty.fileapi.common.AuthConstants;
 import com.posty.fileapi.properties.ApiConfig;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

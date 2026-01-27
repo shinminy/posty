@@ -1,9 +1,10 @@
 package com.posty.fileapi.service;
 
-import com.posty.common.domain.post.MediaType;
 import com.posty.fileapi.dto.FileData;
+import com.posty.fileapi.dto.MediaType;
 import com.posty.fileapi.infrastructure.FileDownloader;
 import com.posty.fileapi.infrastructure.FileValidator;
+import com.posty.fileapi.infrastructure.MimeMediaType;
 import com.posty.fileapi.properties.DirConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -89,7 +90,7 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/image.jpg";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(mediaType))).willReturn(".jpg");
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(".jpg");
         given(fileValidator.isValidSize(any(Path.class))).willReturn(true);
         given(fileValidator.isMaliciousFile(any(Path.class))).willReturn(false);
 
@@ -115,7 +116,7 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/not-image.txt";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(mediaType))).willReturn(null);
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(null);
 
         // when & then
         assertThatThrownBy(() -> fileService.storeFile(mediaType, originUrl))
@@ -129,7 +130,7 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/large.jpg";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(mediaType))).willReturn(".jpg");
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(".jpg");
         given(fileValidator.isValidSize(any(Path.class))).willReturn(false);
 
         doAnswer(invocation -> {
@@ -150,7 +151,7 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/virus.jpg";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(mediaType))).willReturn(".jpg");
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(".jpg");
         given(fileValidator.isValidSize(any(Path.class))).willReturn(true);
         given(fileValidator.isMaliciousFile(any(Path.class))).willReturn(true);
 

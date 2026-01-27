@@ -1,4 +1,4 @@
-package com.posty.common.dto;
+package com.posty.fileapi.dto;
 
 import lombok.*;
 

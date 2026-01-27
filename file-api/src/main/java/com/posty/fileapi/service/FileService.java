@@ -1,9 +1,10 @@
 package com.posty.fileapi.service;
 
-import com.posty.common.domain.post.MediaType;
 import com.posty.fileapi.common.FileNameParts;
 import com.posty.fileapi.common.FileNameUtil;
 import com.posty.fileapi.common.UUIDUtil;
+import com.posty.fileapi.dto.MediaType;
+import com.posty.fileapi.infrastructure.MimeMediaType;
 import com.posty.fileapi.properties.DirConfig;
 import com.posty.fileapi.dto.FileData;
 import com.posty.fileapi.infrastructure.FileDownloader;
@@ -68,7 +69,7 @@ public class FileService {
     public String storeFile(MediaType mediaType, String originUrl) throws IOException {
         URL downloadUrl = new URL(originUrl);
 
-        String dotExtension = fileValidator.getDotExtensionIfValidMimeType(downloadUrl, mediaType);
+        String dotExtension = fileValidator.getDotExtensionIfValidMimeType(downloadUrl, MimeMediaType.from(mediaType));
         if (StringUtils.isBlank(dotExtension)) {
             throw new IllegalArgumentException("Invalid MIME type!");
         }
