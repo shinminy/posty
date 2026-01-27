@@ -1,7 +1,6 @@
 package com.posty.postingapi.security.config;
 
 import com.posty.postingapi.aspect.ResponseLogger;
-import com.posty.postingapi.controller.AccountController;
 import com.posty.postingapi.error.GlobalExceptionHandler;
 import com.posty.postingapi.properties.ApiProperties;
 import com.posty.postingapi.security.apikey.ApiKeyRepository;
@@ -19,15 +18,37 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AccountController.class)
-@Import({SecurityConfig.class, ApiProperties.class, ResponseLogger.class, GlobalExceptionHandler.class, TestTimeConfig.class})
+@WebMvcTest(SecurityConfig.class)
+@Import({
+        CustomAuthenticationEntryPoint.class,
+        ApiProperties.class,
+        ResponseLogger.class,
+        GlobalExceptionHandler.class,
+        TestTimeConfig.class,
+        SecurityConfigTest.TestController.class
+})
 class SecurityConfigTest {
+
+    @RestController // 테스트용 가짜 컨트롤러
+    static class TestController {
+
+        @GetMapping("/accounts/1")
+        public String getAccount() { return "ok"; }
+
+        @GetMapping("/auth/login")
+        public String login() { return "ok"; }
+
+        @GetMapping("/docs/index.html")
+        public String readDocs() { return "ok"; }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,17 +72,14 @@ class SecurityConfigTest {
         String apiKey = "valid-api-key";
         String hashedKey = DigestUtils.sha512Hex(apiKey);
         given(apiKeyRepository.isValid(hashedKey)).willReturn(true);
-        
-        // JWT 필터 통과를 위해 유효한 토큰 설정 (ApiKeyFilter가 먼저 실행됨)
-        String token = "valid-token";
-        given(jwtTokenProvider.validateToken(token)).willReturn(true);
-        Claims claims = Jwts.claims().subject("1").build();
-        given(jwtTokenProvider.getClaims(token)).willReturn(claims);
+
+        given(jwtTokenProvider.validateToken(anyString())).willReturn(true);
+        given(jwtTokenProvider.getClaims(anyString())).willReturn(Jwts.claims().subject("1").build());
 
         // when & then
         mockMvc.perform(get("/accounts/1")
                         .header(apiProperties.getKeyHeaderName(), apiKey)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer any-token"))
                 .andExpect(status().isOk());
     }
 
@@ -78,7 +96,8 @@ class SecurityConfigTest {
     void apiKey_Invalid() throws Exception {
         // given
         String invalidKey = "invalid-key";
-        given(apiKeyRepository.isValid(anyString())).willReturn(false);
+        String hashedKey = DigestUtils.sha512Hex(invalidKey);
+        given(apiKeyRepository.isValid(hashedKey)).willReturn(false);
 
         // when & then
         mockMvc.perform(get("/account/1")
@@ -90,7 +109,6 @@ class SecurityConfigTest {
     @DisplayName("JWT 토큰 인증 성공")
     void jwt_Success() throws Exception {
         // given
-        String apiKey = "valid-api-key";
         given(apiKeyRepository.isValid(anyString())).willReturn(true);
 
         String token = "valid-token";
@@ -100,7 +118,7 @@ class SecurityConfigTest {
 
         // when & then
         mockMvc.perform(get("/accounts/1")
-                        .header(apiProperties.getKeyHeaderName(), apiKey)
+                        .header(apiProperties.getKeyHeaderName(), "any-api-key")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk());
     }
@@ -109,12 +127,11 @@ class SecurityConfigTest {
     @DisplayName("JWT 토큰 누락 시 401 에러")
     void jwt_Missing() throws Exception {
         // given
-        String apiKey = "valid-api-key";
         given(apiKeyRepository.isValid(anyString())).willReturn(true);
 
         // when & then
         mockMvc.perform(get("/account/1")
-                        .header(apiProperties.getKeyHeaderName(), apiKey))
+                        .header(apiProperties.getKeyHeaderName(), "any-api-key"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -122,7 +139,6 @@ class SecurityConfigTest {
     @DisplayName("잘못된 JWT 토큰 사용 시 401 에러")
     void jwt_Invalid() throws Exception {
         // given
-        String apiKey = "valid-api-key";
         given(apiKeyRepository.isValid(anyString())).willReturn(true);
 
         String invalidToken = "invalid-token";
@@ -130,7 +146,7 @@ class SecurityConfigTest {
 
         // when & then
         mockMvc.perform(get("/account/1")
-                        .header(apiProperties.getKeyHeaderName(), apiKey)
+                        .header(apiProperties.getKeyHeaderName(), "any-api-key")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + invalidToken))
                 .andExpect(status().isUnauthorized());
     }
@@ -140,12 +156,13 @@ class SecurityConfigTest {
     void filter_ExcludeAuthPath() throws Exception {
         // given
         String apiKey = "valid-api-key";
-        given(apiKeyRepository.isValid(anyString())).willReturn(true);
+        String hashedKey = DigestUtils.sha512Hex(apiKey);
+        given(apiKeyRepository.isValid(hashedKey)).willReturn(true);
 
         // when & then
         mockMvc.perform(get("/auth/login")
                         .header(apiProperties.getKeyHeaderName(), apiKey))
-                .andExpect(status().isNotFound()); // 컨트롤러에 GET /auth/login이 없어서 404가 뜨는 것이 정상 (필터는 통과함)
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -153,6 +170,6 @@ class SecurityConfigTest {
     void filter_ExcludeDocsPath() throws Exception {
         // when & then
         mockMvc.perform(get("/docs/index.html"))
-                .andExpect(status().isNotFound()); // 필터를 통과하여 존재하지 않는 경로로 도달
+                .andExpect(status().isOk());
     }
 }

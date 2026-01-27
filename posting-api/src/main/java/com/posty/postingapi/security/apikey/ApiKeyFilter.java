@@ -2,6 +2,7 @@ package com.posty.postingapi.security.apikey;
 
 import com.posty.postingapi.properties.ApiProperties;
 import com.posty.postingapi.security.AuthType;
+import com.posty.postingapi.security.config.CustomAuthenticationEntryPoint;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -17,12 +19,18 @@ import java.io.IOException;
 public class ApiKeyFilter extends OncePerRequestFilter {
 
     private final ApiKeyRepository apiKeyRepository;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     private final String apiKeyHeaderName;
     private final String authTypeKey;
 
-    public ApiKeyFilter(ApiKeyRepository apiKeyRepository, ApiProperties apiProperties) {
+    public ApiKeyFilter(
+            ApiKeyRepository apiKeyRepository,
+            CustomAuthenticationEntryPoint authenticationEntryPoint,
+            ApiProperties apiProperties
+    ) {
         this.apiKeyRepository = apiKeyRepository;
+        this.authenticationEntryPoint = authenticationEntryPoint;
 
         apiKeyHeaderName = apiProperties.getKeyHeaderName();
         authTypeKey = apiProperties.getAuthTypeKey();
@@ -53,10 +61,14 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void fail(HttpServletRequest request, HttpServletResponse response, String apiKey, String message) throws IOException {
-        log.info("Wrong API key! [{}] {} {}", HttpServletResponse.SC_UNAUTHORIZED, message, apiKey);
+    private void fail(HttpServletRequest request, HttpServletResponse response, String apiKey, String message) throws ServletException, IOException {
+        log.info("[{}] Wrong API key! ({})", apiKey, message);
 
         request.setAttribute(authTypeKey, AuthType.API_KEY);
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
+        authenticationEntryPoint.commence(request, response, new InsufficientAuthenticationException(message));
+
+        if (!response.isCommitted()) {
+            response.getWriter().flush();
+        }
     }
 }
