@@ -100,7 +100,7 @@ jobs:
     env:
       DEPLOY_USER: ${{ vars.POSTINGAPI_DEPLOY_USER }}
       HOST: ${{ secrets.POSTINGAPI_SERVER_HOST }}
-      PORT: ${{ vars.POSTINGAPI_SERVER_PORT }}
+      PORT: ${{ secrets.POSTINGAPI_SERVER_PORT }}
       KEY: ${{ secrets.POSTINGAPI_SERVER_PRIVATE_KEY }}
       PASSPHRASE: ${{ secrets.POSTINGAPI_SERVER_PRIVATE_KEY_PASSPHRASE }}
       HOME_DIR: ${{ vars.POSTINGAPI_HOME_DIR }}
