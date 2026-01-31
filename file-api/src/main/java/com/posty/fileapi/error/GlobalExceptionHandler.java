@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)
     public void handleAsyncRequestNotUsableException(AsyncRequestNotUsableException e) {
-        log.debug("Streaming response closed by client.");
+        log.debug("Async response no longer usable (Client closed or Timeout): {}", e.getMessage());
     }
 
     @ExceptionHandler({
