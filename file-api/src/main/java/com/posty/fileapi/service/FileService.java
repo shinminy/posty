@@ -86,6 +86,13 @@ public class FileService {
                     remaining -= read;
                 }
             } catch (IOException e) {
+                String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                if (e instanceof org.apache.catalina.connector.ClientAbortException ||
+                        message.contains("broken pipe") ||
+                        message.contains("connection reset")) {
+                    return;
+                }
+
                 log.error("File streaming of {} failed.", filePath, e);
                 throw e;
             }
