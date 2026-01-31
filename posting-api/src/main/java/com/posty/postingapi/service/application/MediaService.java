@@ -1,9 +1,13 @@
 package com.posty.postingapi.service.application;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.posty.postingapi.domain.post.Media;
 import com.posty.postingapi.domain.post.MediaRepository;
 import com.posty.postingapi.domain.post.MediaStatus;
 import com.posty.postingapi.domain.post.MediaType;
+import com.posty.postingapi.error.InvalidMediaException;
+import com.posty.postingapi.error.InvalidMediaStatusException;
+import com.posty.postingapi.error.ResourceNotFoundException;
 import com.posty.postingapi.infrastructure.file.FileApiClient;
 import com.posty.postingapi.infrastructure.file.FileUploadRequest;
 import com.posty.postingapi.infrastructure.file.FileUploadResponse;
@@ -109,90 +113,60 @@ public class MediaService {
     }
 
     @Transactional
-    public boolean uploadMediaFile(Long mediaId) {
-        Media media = mediaRepository.findById(mediaId).orElse(null);
-        if (media == null) {
-            log.error("Media not found (ID: {})", mediaId);
-            return false;
-        }
+    public void uploadMediaFile(Long mediaId) throws JsonProcessingException {
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Media", mediaId));
 
         MediaStatus status = media.getStatus();
         if (status != MediaStatus.WAITING_UPLOAD) {
-            log.error("Invalid media status (ID: {}, status: {})", mediaId, status);
-            return false;
+            throw new InvalidMediaStatusException(mediaId, status);
         }
 
         MediaType mediaType = media.getMediaType();
         String originUrl = media.getOriginUrl();
+        FileUploadRequest request = new FileUploadRequest(mediaType, originUrl);
 
-        try {
-            FileUploadRequest request = new FileUploadRequest(mediaType, originUrl);
-            FileUploadResponse response = fileApiClient.upload(request);
-            if (response == null) {
-                failToUploadMedia(media);
-                return false;
-            }
+        FileUploadResponse response;
+        response = fileApiClient.upload(request);
 
-            successToUploadMedia(media, response.getStoredUrl(), response.getStoredFilename());
-            return true;
-        } catch (Exception e) {
-            log.error("Error occurred when uploading media file with ID={}", mediaId, e);
-            failToUploadMedia(media);
-            return false;
-        }
-    }
-
-    private void successToUploadMedia(Media media, String storedUrl, String storedFilename) {
-        media.uploaded(storedUrl, storedFilename, LocalDateTime.now(clock));
+        media.uploaded(response.storedUrl(), response.storedFilename(), LocalDateTime.now(clock));
         mediaRepository.save(media);
     }
 
-    private void failToUploadMedia(Media media) {
+    @Transactional
+    public void failToUploadMedia(Long mediaId) {
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Media", mediaId));
+
         media.uploadFailed(LocalDateTime.now(clock));
         mediaRepository.save(media);
     }
 
     @Transactional
-    public boolean deleteMediaFile(Long mediaId) {
-        Media media = mediaRepository.findById(mediaId).orElse(null);
-        if (media == null) {
-            log.error("Media not found (ID: {})", mediaId);
-            return false;
-        }
+    public void deleteMediaFile(Long mediaId) {
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Media", mediaId));
 
         MediaStatus status = media.getStatus();
         if (status != MediaStatus.WAITING_DELETION) {
-            log.error("Invalid media status (ID: {}, status: {})", mediaId, status);
-            return false;
+            throw new InvalidMediaStatusException(mediaId, status);
         }
 
         String fileName = media.getStoredFilename();
         if (StringUtils.isBlank(fileName)) {
-            log.error("Filename is empty (ID: {})", mediaId);
-            return false;
+            throw new InvalidMediaException("Filename is empty (ID: " + mediaId + ")");
         }
 
-        try {
-            boolean result = fileApiClient.delete(fileName);
-            if (!result) {
-                failToDeleteMedia(media);
-                return false;
-            }
+        fileApiClient.delete(fileName);
 
-            successToDeleteMedia(media);
-            return true;
-        } catch (Exception e) {
-            log.error("Error occurred when deleting media file with ID={}", mediaId, e);
-            failToDeleteMedia(media);
-            return false;
-        }
-    }
-
-    private void successToDeleteMedia(Media media) {
         mediaRepository.delete(media);
     }
 
-    private void failToDeleteMedia(Media media) {
+    @Transactional
+    public void failToDeleteMedia(Long mediaId) {
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Media", mediaId));
+
         media.deletionFailed(LocalDateTime.now(clock));
         mediaRepository.save(media);
     }

@@ -1,15 +1,11 @@
 package com.posty.fileapi.dto;
 
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.URL;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class FileUploadRequest {
-
-    private MediaType mediaType;
-
-    private String originUrl;
+public record FileUploadRequest(
+        @NotNull MediaType mediaType,
+        @NotBlank @URL String originUrl
+) {
 }

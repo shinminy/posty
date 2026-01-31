@@ -2,10 +2,12 @@ package com.posty.postingapi.infrastructure.file;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.posty.postingapi.error.FileCommunicationException;
 import com.posty.postingapi.properties.MediaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -29,57 +31,66 @@ public class FileApiClient {
         fileApiToken = mediaProperties.getFileApiToken();
     }
 
-    public FileUploadResponse upload(FileUploadRequest request) {
+    public FileUploadResponse upload(FileUploadRequest request) throws JsonProcessingException {
+        HttpMethod method = HttpMethod.POST;
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(fileApiToken);
 
         HttpEntity<FileUploadRequest> entity = new HttpEntity<>(request, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                fileApiUrl,
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            try {
-                return objectMapper.readValue(response.getBody(), FileUploadResponse.class);
-            } catch (JsonProcessingException e) {
-                log.error("Failed to parse response", e);
-                return null;
-            }
-        } else {
-            log.error("Failed to upload! ([{}] {})", response.getStatusCode(), response.getBody());
-            return null;
+        ResponseEntity<String> response;
+        try {
+            response = restTemplate.exchange(
+                    fileApiUrl,
+                    method,
+                    entity,
+                    String.class
+            );
+        } catch (HttpStatusCodeException e) {
+            throw new FileCommunicationException(method, e.getStatusCode(), e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            throw new FileCommunicationException(method, e);
         }
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new FileCommunicationException(method, response.getStatusCode(), response.getBody());
+        }
+
+        return objectMapper.readValue(response.getBody(), FileUploadResponse.class);
     }
 
-    public boolean delete(String fileName) {
+    public void delete(String fileName) {
         URI uri = UriComponentsBuilder
-                .fromHttpUrl(fileApiUrl)
+                .fromUriString(fileApiUrl)
                 .pathSegment(fileName)
                 .build()
                 .toUri();
+
+        HttpMethod method = HttpMethod.DELETE;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(fileApiToken);
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                uri,
-                HttpMethod.DELETE,
-                entity,
-                String.class
-        );
+        ResponseEntity<String> response;
+        try {
+            response = restTemplate.exchange(
+                    uri,
+                    method,
+                    entity,
+                    String.class
+            );
+        } catch (HttpStatusCodeException e) {
+            throw new FileCommunicationException(method, e.getStatusCode(), e.getResponseBodyAsString(), e);
+        } catch (Exception e) {
+            throw new FileCommunicationException(method, e);
+        }
 
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return true;
-        } else {
-            log.error("Failed to delete! ([{}] {})", response.getStatusCode(), response.getBody());
-            return false;
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new FileCommunicationException(method, response.getStatusCode(), response.getBody());
         }
     }
 }

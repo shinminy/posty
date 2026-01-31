@@ -4,19 +4,23 @@ import com.posty.fileapi.common.FileNameParts;
 import com.posty.fileapi.common.FileNameUtil;
 import com.posty.fileapi.common.UUIDUtil;
 import com.posty.fileapi.dto.MediaType;
+import com.posty.fileapi.error.FileIOException;
+import com.posty.fileapi.error.InvalidFileException;
+import com.posty.fileapi.error.InvalidURLException;
+import com.posty.fileapi.error.StoredFileNotFoundException;
 import com.posty.fileapi.infrastructure.MimeMediaType;
 import com.posty.fileapi.properties.DirConfig;
-import com.posty.fileapi.dto.FileData;
 import com.posty.fileapi.infrastructure.FileDownloader;
 import com.posty.fileapi.infrastructure.FileValidator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.utils.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,53 +50,101 @@ public class FileService {
 
     @PostConstruct
     public void init() throws IOException {
-        createDir(tempPath);
-        createDir(basePath);
+        Files.createDirectories(tempPath);
+        Files.createDirectories(basePath);
     }
 
-    private void createDir(Path path) throws IOException {
-        Files.createDirectories(path);
-    }
-
-    public FileData getFile(String fileName) throws IOException {
+    public FileStreamResult getFileStream(String fileName, String rangeHeader) {
         Path filePath = basePath.resolve(fileName);
         if (!Files.exists(filePath)) {
-            throw new FileNotFoundException("File not found: " + fileName);
+            throw new StoredFileNotFoundException(fileName);
         }
+
+        long totalSize;
+        try {
+            totalSize = Files.size(filePath);
+        } catch (IOException e) {
+            log.error("Failed to read size of {}", fileName, e);
+            throw new FileIOException("Failed to read file size");
+        }
+        ByteRange range = ByteRange.parse(rangeHeader, totalSize);
+
+        StreamingResponseBody body = output -> {
+            try (SeekableByteChannel channel = Files.newByteChannel(filePath)) {
+                channel.position(range.start());
+
+                long remaining = range.length();
+                byte[] buffer = new byte[8192];
+
+                while (remaining > 0) {
+                    int read = channel.read(java.nio.ByteBuffer.wrap(
+                            buffer, 0, (int) Math.min(buffer.length, remaining)
+                    ));
+                    if (read == -1) break;
+
+                    output.write(buffer, 0, read);
+                    remaining -= read;
+                }
+            } catch (IOException e) {
+                log.error("File streaming of {} failed.", filePath, e);
+                throw e;
+            }
+        };
 
         String contentType = fileValidator.detectContentType(filePath);
-        byte[] bytes = Files.readAllBytes(filePath);
+        boolean partial = range.partial();
 
-        return new FileData(contentType, bytes);
+        return new FileStreamResult(
+                body,
+                range.length(),
+                contentType,
+                partial ? range.toContentRangeHeader() : null,
+                partial
+        );
     }
 
-    public String storeFile(MediaType mediaType, String originUrl) throws IOException {
-        URL downloadUrl = new URL(originUrl);
-
-        String dotExtension = fileValidator.getDotExtensionIfValidMimeType(downloadUrl, MimeMediaType.from(mediaType));
-        if (StringUtils.isBlank(dotExtension)) {
-            throw new IllegalArgumentException("Invalid MIME type!");
+    public String storeFile(MediaType mediaType, String originUrl) {
+        URL downloadUrl;
+        try {
+            downloadUrl = new URL(originUrl);
+        } catch (MalformedURLException e) {
+            log.error("Failed to parse url {}", originUrl, e);
+            throw new InvalidURLException();
         }
+
+        String dotExtension;
+        dotExtension = fileValidator.getDotExtensionIfValidMimeType(downloadUrl, MimeMediaType.from(mediaType))
+                .orElseThrow(() -> new InvalidFileException("Invalid MIME type!"));
 
         FileNameParts fileNameParts = FileNameUtil.parseFileNameFromUrl(downloadUrl);
         String tempFileName = fileNameParts.name() + "-" + System.currentTimeMillis() + dotExtension;
         Path tempFilePath = tempPath.resolve(tempFileName);
 
-        fileDownloader.download(downloadUrl, tempFilePath);
+        try {
+            fileDownloader.download(downloadUrl, tempFilePath);
+        } catch (IOException e) {
+            log.error("Failed to download file from {}", downloadUrl, e);
+            throw new FileIOException("Failed to download file from url");
+        }
 
         if (!fileValidator.isValidSize(tempFilePath)) {
-            throw new IllegalArgumentException("Invalid file size!");
+            throw new InvalidFileException("Invalid file size!");
         }
 
         if (fileValidator.isMaliciousFile(tempFilePath)) {
-            throw new IllegalArgumentException("Malicious file!");
+            throw new InvalidFileException("Malicious file!");
         }
 
         String fileName = System.currentTimeMillis() + UUIDUtil.getUUIDWithoutDash() + dotExtension;
         Path targetPath = basePath.resolve(fileName);
 
-        Files.copy(tempFilePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        log.info("File {} has been stored!", fileName);
+        try {
+            Files.copy(tempFilePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            log.info("File {} has been stored!", fileName);
+        } catch (IOException e) {
+            log.error("Failed to store {}!", tempFileName, e);
+            throw new FileIOException("Failed to store file");
+        }
 
         try {
             Files.deleteIfExists(tempFilePath);
@@ -103,13 +155,18 @@ public class FileService {
         return fileName;
     }
 
-    public void deleteFile(String fileName) throws IOException {
+    public void deleteFile(String fileName) {
         Path filePath = basePath.resolve(fileName);
         if (!Files.exists(filePath)) {
-            throw new FileNotFoundException("File not found: " + fileName);
+            throw new StoredFileNotFoundException(fileName);
         }
 
-        Files.delete(filePath);
-        log.info("File {} has been deleted!", fileName);
+        try {
+            Files.delete(filePath);
+            log.info("File {} has been deleted!", fileName);
+        } catch (IOException e) {
+            log.error("Failed to delete {}!", fileName, e);
+            throw new FileIOException("Failed to delete file");
+        }
     }
 }

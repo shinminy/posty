@@ -38,6 +38,8 @@ public class FileDownloader {
         try (InputStream inputStream = connection.getInputStream()) {
             long size = Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             log.debug("Downloaded file to {} with size: {}", targetPath, size);
+        } finally {
+            connection.disconnect();
         }
     }
 }
