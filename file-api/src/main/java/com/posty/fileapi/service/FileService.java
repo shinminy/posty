@@ -86,6 +86,14 @@ public class FileService {
                     remaining -= read;
                 }
             } catch (IOException e) {
+                String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                if (e instanceof org.apache.catalina.connector.ClientAbortException ||
+                        message.contains("broken pipe") ||
+                        message.contains("connection reset")) {
+                    // 클라이언트 연결 종료는 정상적인 상황으로 간주하고 로그를 남기지 않고 종료
+                    return;
+                }
+
                 log.error("File streaming of {} failed.", filePath, e);
                 throw e;
             }
