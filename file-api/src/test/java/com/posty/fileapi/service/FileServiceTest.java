@@ -1,7 +1,9 @@
 package com.posty.fileapi.service;
 
-import com.posty.fileapi.dto.FileData;
 import com.posty.fileapi.dto.MediaType;
+import com.posty.fileapi.error.InvalidFileException;
+import com.posty.fileapi.error.InvalidRangeException;
+import com.posty.fileapi.error.StoredFileNotFoundException;
 import com.posty.fileapi.infrastructure.FileDownloader;
 import com.posty.fileapi.infrastructure.FileValidator;
 import com.posty.fileapi.infrastructure.MimeMediaType;
@@ -14,11 +16,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -65,23 +67,62 @@ class FileServiceTest {
         // given
         String fileName = "test.txt";
         Path filePath = basePath.resolve(fileName);
+        String content = "test content";
         Files.write(filePath, "test content".getBytes());
+
         given(fileValidator.detectContentType(filePath)).willReturn("text/plain");
 
         // when
-        FileData result = fileService.getFile(fileName);
+        FileStreamResult result = fileService.getFileStream(fileName, null);
 
         // then
         assertThat(result.contentType()).isEqualTo("text/plain");
-        assertThat(new String(result.bytes())).isEqualTo("test content");
+        assertThat(result.contentLength()).isEqualTo(content.length());
+        assertThat(result.body()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("파일 부분 조회(Range) 성공")
+    void getFileStream_Range_Success() throws IOException {
+        // given
+        String fileName = "range-test.txt";
+        Path filePath = basePath.resolve(fileName);
+        String content = "0123456789"; // 10바이트
+        Files.write(filePath, content.getBytes());
+
+        String rangeHeader = "bytes=5-9"; // 뒤쪽 5바이트 요청
+        given(fileValidator.detectContentType(filePath)).willReturn("text/plain");
+
+        // when
+        FileStreamResult result = fileService.getFileStream(fileName, rangeHeader);
+
+        // then
+        assertThat(result.partial()).isTrue();
+        assertThat(result.contentLength()).isEqualTo(5);
+        assertThat(result.contentRange()).isEqualTo("bytes 5-9/10");
     }
 
     @Test
     @DisplayName("파일 조회 실패 - 파일 없음")
     void getFile_NotFound() {
         // when & then
-        assertThatThrownBy(() -> fileService.getFile("nonexistent.txt"))
-                .isInstanceOf(FileNotFoundException.class);
+        assertThatThrownBy(() -> fileService.getFileStream("nonexistent.txt", null))
+                .isInstanceOf(StoredFileNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("파일 조회 실패 - 잘못된 Range 형식")
+    void getFileStream_InvalidRange() throws IOException {
+        // given
+        String fileName = "test.txt";
+        Path filePath = basePath.resolve(fileName);
+        Files.write(filePath, "test content".getBytes());
+
+        String invalidRange = "bytes=100-50";
+
+        // when & then
+        assertThatThrownBy(() -> fileService.getFileStream(fileName, invalidRange))
+                .isInstanceOf(InvalidRangeException.class);
     }
 
     @Test
@@ -90,7 +131,8 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/image.jpg";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(".jpg");
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType))))
+                .willReturn(Optional.of(".jpg"));
         given(fileValidator.isValidSize(any(Path.class))).willReturn(true);
         given(fileValidator.isMaliciousFile(any(Path.class))).willReturn(false);
 
@@ -116,11 +158,12 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/not-image.txt";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(null);
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType))))
+                .willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> fileService.storeFile(mediaType, originUrl))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidFileException.class)
                 .hasMessage("Invalid MIME type!");
     }
 
@@ -130,7 +173,8 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/large.jpg";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(".jpg");
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType))))
+                .willReturn(Optional.of(".jpg"));
         given(fileValidator.isValidSize(any(Path.class))).willReturn(false);
 
         doAnswer(invocation -> {
@@ -141,7 +185,7 @@ class FileServiceTest {
 
         // when & then
         assertThatThrownBy(() -> fileService.storeFile(mediaType, originUrl))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidFileException.class)
                 .hasMessage("Invalid file size!");
     }
 
@@ -151,7 +195,8 @@ class FileServiceTest {
         // given
         MediaType mediaType = MediaType.IMAGE;
         String originUrl = "https://example.com/virus.jpg";
-        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType)))).willReturn(".jpg");
+        given(fileValidator.getDotExtensionIfValidMimeType(any(URL.class), eq(MimeMediaType.from(mediaType))))
+                .willReturn(Optional.of(".jpg"));
         given(fileValidator.isValidSize(any(Path.class))).willReturn(true);
         given(fileValidator.isMaliciousFile(any(Path.class))).willReturn(true);
 
@@ -163,7 +208,7 @@ class FileServiceTest {
 
         // when & then
         assertThatThrownBy(() -> fileService.storeFile(mediaType, originUrl))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidFileException.class)
                 .hasMessage("Malicious file!");
     }
 
@@ -187,6 +232,6 @@ class FileServiceTest {
     void deleteFile_NotFound() {
         // when & then
         assertThatThrownBy(() -> fileService.deleteFile("nonexistent.txt"))
-                .isInstanceOf(FileNotFoundException.class);
+                .isInstanceOf(StoredFileNotFoundException.class);
     }
 }
