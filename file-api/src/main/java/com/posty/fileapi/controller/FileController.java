@@ -2,20 +2,20 @@ package com.posty.fileapi.controller;
 
 import com.posty.fileapi.dto.FileUploadRequest;
 import com.posty.fileapi.dto.FileUploadResponse;
+import com.posty.fileapi.error.FileIOException;
 import com.posty.fileapi.properties.ApiConfig;
 import com.posty.fileapi.service.FileService;
-import com.posty.fileapi.service.FileStreamResult;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 
 @Slf4j
@@ -33,25 +33,47 @@ public class FileController {
         externalUrl = apiConfig.getExternalUrl();
     }
 
+    // 게이트웨이(Nginx 등)가 없는 환경(로컬/테스트)에서 발생하는 favicon 요청을 막기 위한 fallback 처리
+    @GetMapping("/favicon.ico")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void favicon() {
+    }
+
     @GetMapping("/{fileName}")
-    public ResponseEntity<StreamingResponseBody> getFile(
+    public ResponseEntity<ResourceRegion> getFile(
             @PathVariable @NotBlank String fileName,
-            @RequestHeader(value = HttpHeaders.RANGE, required = false) String range
+            @RequestHeader HttpHeaders headers
     ) {
-        FileStreamResult result = fileService.getFileStream(fileName, range);
+        Resource resource = fileService.getFileResource(fileName);
 
-        ResponseEntity.BodyBuilder builder = result.partial()
-                ? ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                : ResponseEntity.ok();
-
-        if (result.contentRange() != null) {
-            builder.header(HttpHeaders.CONTENT_RANGE, result.contentRange());
+        long contentLength;
+        try {
+            contentLength = resource.contentLength();
+        } catch (IOException e) {
+            throw new FileIOException("Failed to read file size");
         }
 
-        return builder
-                .header(HttpHeaders.CONTENT_TYPE, result.contentType())
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(result.contentLength()))
-                .body(result.body());
+        MediaType mediaType = MediaTypeFactory
+                .getMediaType(resource)
+                .orElse(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM);
+
+        if (headers.getRange().isEmpty()) {
+            ResourceRegion region = new ResourceRegion(resource, 0, contentLength);
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body(region);
+        }
+
+        HttpRange range = headers.getRange().get(0);
+        long start = range.getRangeStart(contentLength);
+        long end = range.getRangeEnd(contentLength);
+        long rangeLength = end - start + 1;
+
+        ResourceRegion region = new ResourceRegion(resource, start, rangeLength);
+
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                .contentType(mediaType)
+                .body(region);
     }
 
     @PostMapping

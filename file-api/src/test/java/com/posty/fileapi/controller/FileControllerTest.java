@@ -5,23 +5,20 @@ import com.posty.fileapi.dto.FileUploadRequest;
 import com.posty.fileapi.dto.MediaType;
 import com.posty.fileapi.properties.ApiConfig;
 import com.posty.fileapi.service.FileService;
-import com.posty.fileapi.service.FileStreamResult;
 import com.posty.fileapi.support.TestSecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,83 +42,72 @@ class FileControllerTest {
     void getFile_FullContent_Success() throws Exception {
         // given
         String fileName = "full-file.txt";
-        String content = "This is full content of the file.";
-        byte[] contentBytes = content.getBytes();
+        byte[] contentBytes = "This is full content of the file.".getBytes();
 
-        StreamingResponseBody body = output -> output.write(contentBytes);
-        FileStreamResult result = new FileStreamResult(
-                body, contentBytes.length, "text/plain", null, false
-        );
+        Resource resource = new ByteArrayResource(contentBytes) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
 
-        given(fileService.getFileStream(eq(fileName), eq(null))).willReturn(result);
+        given(fileService.getFileResource(fileName)).willReturn(resource);
 
-        // when
-        MvcResult mvcResult = mockMvc.perform(get("/{fileName}", fileName))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        // then
-        mockMvc.perform(asyncDispatch(mvcResult))
+        // when & then
+        mockMvc.perform(get("/{fileName}", fileName))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain"))
-                .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentBytes.length)))
-                .andExpect(header().doesNotExist(HttpHeaders.CONTENT_RANGE))
                 .andExpect(content().bytes(contentBytes));
     }
 
     @Test
-    @DisplayName("파일 조회 성공 - 스트리밍 확인")
+    @DisplayName("파일 조회 성공")
     void getFile_Success() throws Exception {
         // given
         String fileName = "test.txt";
         String content = "test content";
+        byte[] contentBytes = content.getBytes();
 
-        StreamingResponseBody body = output -> output.write(content.getBytes());
-        FileStreamResult result = new FileStreamResult(
-                body, content.length(), "text/plain", null, false
-        );
+        Resource resource = new ByteArrayResource(contentBytes) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
 
-        given(fileService.getFileStream(eq(fileName), any())).willReturn(result);
+        given(fileService.getFileResource(fileName)).willReturn(resource);
 
-        // when
-        MvcResult mvcResult = mockMvc.perform(get("/{fileName}", fileName))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        // then
-        mockMvc.perform(asyncDispatch(mvcResult))
+        // when & then
+        mockMvc.perform(get("/{fileName}", fileName))
                 .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/plain"))
-                .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, String.valueOf(content.length())))
                 .andExpect(content().string(content));
     }
 
     @Test
-    @DisplayName("파일 조회 - Range 요청 시 부분 응답(206) 반환")
+    @DisplayName("파일 조회 - Range 요청 시 부분 응답(206)")
     void getFile_RangeRequest() throws Exception {
         // given
         String fileName = "video.mp4";
-        String rangeHeader = "bytes=100-199";
+        byte[] content = new byte[1000];
 
-        StreamingResponseBody body = output -> {}; // 바디는 비워둠
-        FileStreamResult result = new FileStreamResult(
-                body, 100, "video/mp4", "bytes 100-199/1000", true
-        );
+        Resource resource = new ByteArrayResource(content) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
 
-        given(fileService.getFileStream(fileName, rangeHeader)).willReturn(result);
+        given(fileService.getFileResource(fileName)).willReturn(resource);
 
-        // when
-        MvcResult mvcResult = mockMvc.perform(get("/{fileName}", fileName)
-                        .header(HttpHeaders.RANGE, rangeHeader))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        // then
-        mockMvc.perform(asyncDispatch(mvcResult))
+        // when & then
+        mockMvc.perform(get("/{fileName}", fileName)
+                        .header(HttpHeaders.RANGE, "bytes=100-199"))
                 .andExpect(status().isPartialContent())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "video/mp4"))
                 .andExpect(header().string(HttpHeaders.CONTENT_RANGE, "bytes 100-199/1000"))
-                .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "100"));
+                .andExpect(content().bytes(
+                        java.util.Arrays.copyOfRange(content, 100, 200)
+                ));
     }
 
     @Test

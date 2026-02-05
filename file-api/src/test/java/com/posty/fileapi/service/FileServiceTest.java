@@ -2,7 +2,6 @@ package com.posty.fileapi.service;
 
 import com.posty.fileapi.dto.MediaType;
 import com.posty.fileapi.error.InvalidFileException;
-import com.posty.fileapi.error.InvalidRangeException;
 import com.posty.fileapi.error.StoredFileNotFoundException;
 import com.posty.fileapi.infrastructure.FileDownloader;
 import com.posty.fileapi.infrastructure.FileValidator;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.net.URL;
@@ -62,67 +62,28 @@ class FileServiceTest {
     }
 
     @Test
-    @DisplayName("파일 조회 성공")
-    void getFile_Success() throws IOException {
+    @DisplayName("파일 조회 성공 - Resource 반환")
+    void getFileResource_Success() throws Exception {
         // given
         String fileName = "test.txt";
         Path filePath = basePath.resolve(fileName);
-        String content = "test content";
         Files.write(filePath, "test content".getBytes());
 
-        given(fileValidator.detectContentType(filePath)).willReturn("text/plain");
-
         // when
-        FileStreamResult result = fileService.getFileStream(fileName, null);
+        Resource resource = fileService.getFileResource(fileName);
 
         // then
-        assertThat(result.contentType()).isEqualTo("text/plain");
-        assertThat(result.contentLength()).isEqualTo(content.length());
-        assertThat(result.body()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("파일 부분 조회(Range) 성공")
-    void getFileStream_Range_Success() throws IOException {
-        // given
-        String fileName = "range-test.txt";
-        Path filePath = basePath.resolve(fileName);
-        String content = "0123456789"; // 10바이트
-        Files.write(filePath, content.getBytes());
-
-        String rangeHeader = "bytes=5-9"; // 뒤쪽 5바이트 요청
-        given(fileValidator.detectContentType(filePath)).willReturn("text/plain");
-
-        // when
-        FileStreamResult result = fileService.getFileStream(fileName, rangeHeader);
-
-        // then
-        assertThat(result.partial()).isTrue();
-        assertThat(result.contentLength()).isEqualTo(5);
-        assertThat(result.contentRange()).isEqualTo("bytes 5-9/10");
+        assertThat(resource).isNotNull();
+        assertThat(resource.exists()).isTrue();
+        assertThat(resource.getFilename()).isEqualTo(fileName);
     }
 
     @Test
     @DisplayName("파일 조회 실패 - 파일 없음")
-    void getFile_NotFound() {
+    void getFileResource_NotFound() {
         // when & then
-        assertThatThrownBy(() -> fileService.getFileStream("nonexistent.txt", null))
+        assertThatThrownBy(() -> fileService.getFileResource("nonexistent.txt"))
                 .isInstanceOf(StoredFileNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("파일 조회 실패 - 잘못된 Range 형식")
-    void getFileStream_InvalidRange() throws IOException {
-        // given
-        String fileName = "test.txt";
-        Path filePath = basePath.resolve(fileName);
-        Files.write(filePath, "test content".getBytes());
-
-        String invalidRange = "bytes=100-50";
-
-        // when & then
-        assertThatThrownBy(() -> fileService.getFileStream(fileName, invalidRange))
-                .isInstanceOf(InvalidRangeException.class);
     }
 
     @Test

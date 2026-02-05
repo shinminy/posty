@@ -14,13 +14,13 @@ import com.posty.fileapi.infrastructure.FileDownloader;
 import com.posty.fileapi.infrastructure.FileValidator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,60 +54,17 @@ public class FileService {
         Files.createDirectories(basePath);
     }
 
-    public FileStreamResult getFileStream(String fileName, String rangeHeader) {
+    public Resource getFileResource(String fileName) {
         Path filePath = basePath.resolve(fileName);
         if (!Files.exists(filePath)) {
             throw new StoredFileNotFoundException(fileName);
         }
 
-        long totalSize;
         try {
-            totalSize = Files.size(filePath);
-        } catch (IOException e) {
-            log.error("Failed to read size of {}", fileName, e);
-            throw new FileIOException("Failed to read file size");
+            return new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            throw new FileIOException("Invalid file path");
         }
-        ByteRange range = ByteRange.parse(rangeHeader, totalSize);
-
-        StreamingResponseBody body = output -> {
-            try (SeekableByteChannel channel = Files.newByteChannel(filePath)) {
-                channel.position(range.start());
-
-                long remaining = range.length();
-                byte[] buffer = new byte[8192];
-
-                while (remaining > 0) {
-                    int read = channel.read(java.nio.ByteBuffer.wrap(
-                            buffer, 0, (int) Math.min(buffer.length, remaining)
-                    ));
-                    if (read == -1) break;
-
-                    output.write(buffer, 0, read);
-                    remaining -= read;
-                }
-            } catch (IOException e) {
-                String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-                if (e instanceof org.apache.catalina.connector.ClientAbortException ||
-                        message.contains("broken pipe") ||
-                        message.contains("connection reset")) {
-                    return;
-                }
-
-                log.error("File streaming of {} failed.", filePath, e);
-                throw e;
-            }
-        };
-
-        String contentType = fileValidator.detectContentType(filePath);
-        boolean partial = range.partial();
-
-        return new FileStreamResult(
-                body,
-                range.length(),
-                contentType,
-                partial ? range.toContentRangeHeader() : null,
-                partial
-        );
     }
 
     public String storeFile(MediaType mediaType, String originUrl) {
