@@ -33,6 +33,12 @@ public class FileController {
         externalUrl = apiConfig.getExternalUrl();
     }
 
+    // 게이트웨이(Nginx 등)가 없는 환경(로컬/테스트)에서 발생하는 favicon 요청을 막기 위한 fallback 처리
+    @GetMapping("/favicon.ico")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void favicon() {
+    }
+
     @GetMapping("/{fileName}")
     public ResponseEntity<ResourceRegion> getFile(
             @PathVariable @NotBlank String fileName,
